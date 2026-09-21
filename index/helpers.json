@@ -1,0 +1,5 @@
+{
+  "rstudio-server": {
+    "path": "helpers/rstudio-server"
+  }
+}
