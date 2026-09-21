@@ -39,14 +39,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Stage the plain JSON only: gzip stores an mtime, so the .gz differs
-          # on every run even when the content is identical.
-          git add index/recipes.json index/helpers.json
+          # The generators rewrite a .json and its .gz together, and only when
+          # the content changed, so staging the directory is enough.
+          git add index
 
           if git diff --staged --quiet; then
             echo "Index unchanged."
           else
-            git add index/recipes.json.gz index/helpers.json.gz
             git commit -m "chore: update index [skip ci]"
             git push
           fi

@@ -8,9 +8,13 @@ listing and nothing is parsed here.
 
     {"jupyterlab": {"path": "helpers/jupyterlab"}}
 """
-import gzip
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from indexio import write_index  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 HELPERS_DIR = ROOT / "helpers"
@@ -29,12 +33,9 @@ def main() -> None:
             index[path.name] = {"path": f"helpers/{path.name}"}
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(index, indent=2, sort_keys=True, ensure_ascii=False)
-    OUT_FILE.write_text(text + "\n", encoding="utf-8")
-    with gzip.open(str(OUT_FILE) + ".gz", "wt", encoding="utf-8") as fh:
-        fh.write(text + "\n")
-
-    print(f"Wrote {len(index)} helpers to {OUT_FILE}")
+    text = json.dumps(index, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+    verb = "Wrote" if write_index(OUT_FILE, text) else "Unchanged:"
+    print(f"{verb} {len(index)} helpers in {OUT_FILE}")
 
 
 if __name__ == "__main__":

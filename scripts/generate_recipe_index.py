@@ -16,7 +16,6 @@ Entry shapes:
 
 Templates are not expanded here; condatainer expands them at resolve time.
 """
-import gzip
 import json
 import re
 import sys
@@ -25,6 +24,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from autoupdate import natural  # noqa: E402  — one ordering rule for all scripts
+from indexio import write_index  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPES_DIR = ROOT / "recipes"
@@ -218,15 +218,13 @@ def main() -> None:
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     text = format_json(index) + "\n"
-    OUT_FILE.write_text(text, encoding="utf-8")
-    with gzip.open(str(OUT_FILE) + ".gz", "wt", encoding="utf-8") as fh:
-        fh.write(text)
+    written = write_index(OUT_FILE, text)
 
     templates = sum(1 for e in index.values() if e.get("is_template"))
     types: dict[str, int] = {}
     for e in index.values():
         types[e["type"]] = types.get(e["type"], 0) + 1
-    print(f"Wrote {len(index)} entries ({templates} templates) to {OUT_FILE}")
+    print(f"{'Wrote' if written else 'Unchanged:'} {len(index)} entries ({templates} templates) in {OUT_FILE}")
     print("  " + ", ".join(f"{k}: {v}" for k, v in sorted(types.items())))
 
 
