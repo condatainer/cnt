@@ -1,5 +1,8 @@
 {
   "rstudio-server": {
     "path": "helpers/rstudio-server"
+  },
+  "rstudio-server-conda": {
+    "path": "helpers/rstudio-server-conda"
   }
 }
