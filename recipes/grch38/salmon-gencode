@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#DESC:Salmon {salmon_version} index for GRCh38 GENCODE {gencode_version}, with decoys
+#URL:https://combine-lab.github.io/salmon/
+#TARGET:grch38/salmon/{salmon_version}/gencode{gencode_version}
+
+#PH:salmon_version:1.11.4,1.10.3,1.10.2,1.10.1,1.10.0,1.9.0
+#PH:gencode_version:23-50
+
+#AUTOUPDATE:salmon_version:conda bioconda::salmon min=1.9.0
+#AUTOUPDATE:gencode_version:dep from=grch38/transcript-gencode
+
+#DEP:salmon/{salmon_version}
+#DEP:grch38/genome/gencode
+#DEP:grch38/transcript-gencode/{gencode_version}
+
+#ENV:SALMON_INDEX_DIR={prefix}   ## Salmon index, GRCh38 GENCODE {gencode_version}, built with the genome as decoy
+
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=24G
+#SBATCH --time=2:00:00
+#SBATCH --job-name=salmon-index
+
+cd "$CNT_TMP"
+
+echo "Building the gentrome and decoys" >&2
+cat "$TRANSCRIPT_FASTA" "$GENOME_FASTA" > gentrome.fa
+cut -f 1 "${GENOME_FASTA}.fai" > decoys.txt
+
+echo "Building Salmon index for $CNT_NAME" >&2
+salmon index \
+    -p "$NCPUS" \
+    -t gentrome.fa \
+    -d decoys.txt \
+    -i "$CNT_PREFIX" \
+    --gencode

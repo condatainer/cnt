@@ -1,0 +1,38 @@
+name: Validate Recipes
+
+on:
+  pull_request:
+    paths:
+      - 'recipes/**'
+      - 'helpers/**'
+      - 'scripts/**'
+  workflow_dispatch: {}
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Validate recipes
+        run: python3 scripts/validate_recipes.py
+
+      - name: Check header formatting
+        run: python3 scripts/format_headers.py --check
+
+      - name: Reject a hand-edited index
+        run: |
+          # index/ is generated and committed by CI. A second writer conflicts
+          # with it on every pull request. index/README.md is hand-written and
+          # says exactly that, so it is the one file here anyone may edit.
+          generated=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
+              | grep '^index/' | grep -v '^index/README\.md$' || true)
+          if [ -n "$generated" ]; then
+            echo "index/ is generated; drop these from this pull request:"
+            echo "$generated"
+            exit 1
+          fi

@@ -1,0 +1,37 @@
+#DESC:CondaTainer Ubuntu 24.04 base image
+#URL:https://hub.docker.com/_/ubuntu
+
+Bootstrap: docker
+From: ubuntu:24.04
+
+%environment
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+    export PS1='CNT \w> '
+
+%runscript
+    exec /bin/bash "$@"
+
+%post
+    # Avoid interactive prompts
+    export DEBIAN_FRONTEND=noninteractive
+
+    # A root-mapped build has one uid, so apt cannot drop to its _apt user.
+    echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/99-no-sandbox
+
+    # e2fsprogs: overlay create/resize for a nested condatainer call
+    # fuse2fs: mounts a writable .img for a nested apptainer call
+    # time: resource usage tracing
+    apt-get update && apt-get install -y \
+        ca-certificates \
+        curl wget aria2 rsync \
+        tar pigz unzip bzip2 xz-utils zstd lz4 \
+        e2fsprogs fuse2fs \
+        bash zsh fish bash-completion tmux tree time git \
+        htop less nano \
+        netcat-openbsd iproute2 dnsutils iputils-ping
+
+    # Caches, recreated on demand by whoever is running.
+    apt-get clean
+    rm -rf /var/lib/apt/lists/* /var/cache/man
+    rm -f /etc/apt/apt.conf.d/99-no-sandbox

@@ -1,0 +1,168 @@
+name: Auto-update Recipes
+
+# Commits straight to the default branch. A pull request would only be worth the
+# machinery if someone read it, and a daily review is not a job for one person.
+# The checks that a reader would have applied are in the updater instead: it
+# refuses values that do not look like the existing ones, values far outside
+# their range, and implausibly large batches.
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would change without committing'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write     # a persistent failure is reported as one rolling issue
+
+concurrency:
+  group: autoupdate
+  cancel-in-progress: false
+
+jobs:
+  autoupdate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Update from upstreams
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -o pipefail   # without it, tee's exit status hides a failed run
+          python3 scripts/autoupdate.py ${{ inputs.dry_run && '--dry-run' || '' }} \
+            2>&1 | tee /tmp/report.txt
+
+      # Every script in scripts/autoupdate/ rewrites one generated file. An
+      # unreachable upstream must not discard the recipe updates the previous
+      # step already wrote, so the step may fail without stopping the job; each
+      # script still runs when an earlier one fails. Each prints [UPDATED],
+      # [SKIP] or [FAIL] lines into the same report the summary and the failure
+      # issue read.
+      - name: Update generated files
+        if: ${{ !inputs.dry_run }}
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          status=0
+          for script in scripts/autoupdate/*.py; do
+            python3 "$script" 2>&1 | tee -a /tmp/report.txt || status=1
+          done
+          exit $status
+
+      - name: Validate
+        run: |
+          python3 scripts/validate_recipes.py
+          python3 scripts/format_headers.py --check
+
+      - name: Regenerate the index
+        run: |
+          python3 scripts/generate_recipe_index.py
+          python3 scripts/generate_helper_index.py
+
+      - name: Commit
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Recipes and index move together: a #PH: list is index content, so
+          # one without the other leaves the index describing versions the
+          # recipes no longer offer.
+          git add recipes index helpers/.Rprofile
+
+          if git diff --staged --quiet; then
+            echo "Everything is current."
+            exit 0
+          fi
+
+          # [skip ci] so generate-index.yml does not re-run on this push and
+          # regenerate what this job already wrote.
+          git commit -m "chore: update recipes from upstream [skip ci]"
+          git push
+
+      - name: Summarise
+        if: always()
+        run: |
+          {
+            echo '### Auto-update'
+            echo '```'
+            # [SKIP] is most of the output once there are many headers, and
+            # says only that nothing happened.
+            grep -E '^\[(UPDATED|FAIL)\]|headers,' /tmp/report.txt || echo "(no report)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The run exits non-zero only when *every* header fails, so that one
+      # unreachable host does not discard the other results. The cost is that a
+      # single broken header is a green check nobody is told about, and that
+      # recipe quietly stops updating. These two steps are what carries a
+      # failure out of the log: annotations for someone already looking at the
+      # repo, an issue for someone who is not.
+      - name: Report failures
+        if: ${{ always() && !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          failures=$(grep '^\[FAIL\]' /tmp/report.txt 2>/dev/null || true)
+
+          while IFS= read -r line; do
+            [ -n "$line" ] && echo "::error::${line#'[FAIL] '}"
+          done <<< "$failures"
+
+          gh label create autoupdate --color B60205 \
+            --description "Raised by the auto-update workflow" 2>/dev/null || true
+
+          # --state all, so a failure that comes back reopens the same thread
+          # rather than starting a pile of duplicates. Closing it by hand does
+          # not snooze it: the next failing run reopens it.
+          read -r number state < <(gh issue list --state all --label autoupdate \
+            --limit 1 --json number,state \
+            --jq '.[0] // empty | "\(.number) \(.state)"')
+
+          if [ -z "$failures" ]; then
+            if [ "$state" = "OPEN" ]; then
+              gh issue close "$number" \
+                --comment "Every source succeeded in [this run]($RUN_URL)."
+            fi
+            exit 0
+          fi
+
+          {
+            echo "> Rewritten by the auto-update workflow on every run —"
+            echo "> **edits to this body are lost.** Comment instead;"
+            echo "> comments are kept."
+            echo
+            echo "One or more sources failed. Until this is fixed those"
+            echo "recipes are pinned to whatever they say now."
+            echo
+            echo '```'
+            echo "$failures"
+            echo '```'
+            echo
+            echo "[Full run]($RUN_URL) · updated $(date -u '+%Y-%m-%d %H:%M UTC')"
+            echo
+            echo "Closes itself when a run has no failures."
+          } > /tmp/issue.md
+
+          if [ -z "$number" ]; then
+            gh issue create --label autoupdate \
+              --title "Auto-update failures" --body-file /tmp/issue.md
+          else
+            # Editing the body rather than commenting: while it stays open this
+            # notifies once, not once a day for as long as it is broken.
+            gh issue edit "$number" --body-file /tmp/issue.md
+            # Body first, so a reopen notification arrives describing what is
+            # wrong now rather than whatever it said when it was closed.
+            [ "$state" = "OPEN" ] || gh issue reopen "$number"
+          fi

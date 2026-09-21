@@ -1,0 +1,42 @@
+#DESC:RStudio Server {version} on Ubuntu 24.04
+#URL:https://posit.co/products/open-source/rstudio-server/
+#TARGET:ubuntu24/rstudio-server/{version}
+
+#PH:version:2026.09.0-174,2026.06.0-242
+
+#AUTOUPDATE:version:json https://www.rstudio.com/wp-content/downloads.json path=rstudio.open_source.stable.server.installer.noble.url regex=rstudio-server-(\d+\.\d+\.\d+-\d+)- verify=head
+
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    Description "Ubuntu24 with RStudio Server {version}"
+
+%environment
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+    export PS1='CNT \w> '
+
+%runscript
+    exec /bin/bash "$@"
+
+%post
+    # Avoid interactive prompts
+    export DEBIAN_FRONTEND=noninteractive
+
+    # A root-mapped build has one uid, so apt cannot drop to its _apt user.
+    echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/99-no-sandbox
+
+    apt-get -y update && apt-get -y install curl
+
+    # RStudio Server. arm64 stable builds are published to S3, not download2.
+    case "$(uname -m)" in
+        x86_64) url="https://download2.rstudio.org/server/jammy/amd64/rstudio-server-{version}-amd64.deb" ;;
+        aarch64) url="https://s3.amazonaws.com/rstudio-ide-build/server/jammy/arm64/rstudio-server-{version}-arm64.deb" ;;
+        *) echo "ERROR: Unsupported architecture: $(uname -m)"; exit 1 ;;
+    esac
+    curl -fsSL -o rstudio.deb "$url"
+    apt-get install -y ./rstudio.deb && rm rstudio.deb
+
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+    rm -f /etc/apt/apt.conf.d/99-no-sandbox

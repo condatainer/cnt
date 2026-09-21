@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#DESC:GRCh38 primary assembly genome FASTA, GENCODE naming
+#URL:https://www.gencodegenes.org/human/
+
+#AUTOUPDATE:samtools:conda bioconda::samtools regex=^v?(\d+\.\d+(?:\.\d+)?)$
+
+#DEP:samtools/1.24>=1.10
+#SOURCE:genome https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_49/GRCh38.primary_assembly.genome.fa.gz
+
+#ENV:GENOME_FASTA={prefix}/GRCh38.primary_assembly.genome.fa   ## GRCh38 primary assembly FASTA
+
+# The genome FASTA is the same in every GENCODE release from 22 on. Release 49 only
+# records when this recipe was written, and any annotation release pairs with it.
+cd "$CNT_PREFIX"
+
+echo "Decompressing the genome" >&2
+pigz -dc -p "${NCPUS:-4}" "$CNT_SRC_genome" > GRCh38.primary_assembly.genome.fa
+
+echo "Indexing with samtools faidx" >&2
+samtools faidx GRCh38.primary_assembly.genome.fa

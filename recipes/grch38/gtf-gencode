@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#DESC:GENCODE {gencode_version} comprehensive gene annotation GTF for GRCh38
+#URL:https://www.gencodegenes.org/human/
+#TARGET:grch38/gtf-gencode/{gencode_version}
+
+#PH:gencode_version:22-50
+
+#AUTOUPDATE:gencode_version:listing https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/ regex=release_(\d+)/ min=22 verify=head
+
+#SOURCE:gtf https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_{gencode_version}/gencode.v{gencode_version}.primary_assembly.annotation.gtf.gz
+
+#ENV:ANNOTATION_GTF={prefix}/gencode.v{gencode_version}.primary_assembly.annotation.gtf   ## GENCODE {gencode_version} gene annotation GTF for GRCh38
+
+cd "$CNT_PREFIX"
+
+echo "Decompressing the annotation" >&2
+pigz -dc -p "${NCPUS:-4}" "$CNT_SRC_gtf" > "gencode.v{gencode_version}.primary_assembly.annotation.gtf"

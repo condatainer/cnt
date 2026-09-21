@@ -1,0 +1,37 @@
+# Version ordering cases, shared by the Python generator and the Go catalog.
+#
+# One case per line: a|b|want, where want is the sign of compare(a, b) —
+# 1 when a sorts after b, -1 before, 0 equal.
+#
+# Both implementations must agree on every line. The index this collection
+# publishes is consumed verbatim over HTTP while a local checkout is parsed and
+# sorted by Go, so a disagreement makes ph[0] — the default version offered to
+# users — depend on how the collection was read.
+#
+# Python: scripts/test_version_order.py       Go: catalog/version_test.go
+
+# digit runs compare numerically, not lexically
+1.10|1.9|1
+1.2.3.10|1.2.3.4|1
+49|48|1
+M36|M9|1
+
+# a letter suffix is part of the version, not a separator
+2.7.11b|2.7.9a|1
+2.7.11a|2.7.11b|-1
+4.6.1|4.6.0|1
+
+# dash + letter is a prerelease: it ranks below the version it qualifies
+1.1.0|1.1.0-rc1|1
+1.1.0-rc1|1.1.0-rc2|-1
+1.1.0-alpha|1.1.0-beta|-1
+2024-A|2024|-1
+2024-A|2024-B|-1
+
+# dash + digit is a build number, not a prerelease: it keeps sorting on digits
+2026.06.0-242|2026.06.0-243|-1
+2026.06.0-242|2026.06.0|1
+
+# equal is equal
+1.0|1.0|0
+2.7.11b|2.7.11b|0

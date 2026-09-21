@@ -1,0 +1,52 @@
+name: Generate Index
+
+on:
+  push:
+    # Default branch only. The autoupdate branch regenerates the index in its
+    # own job, and a second writer would commit on top of that push.
+    branches:
+      - main
+    paths:
+      - 'recipes/**'
+      - 'helpers/**'
+      - 'scripts/**'
+      - '.github/workflows/generate-index.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  generate-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Validate recipes
+        run: python3 scripts/validate_recipes.py
+
+      - name: Generate indexes
+        run: |
+          python3 scripts/generate_recipe_index.py
+          python3 scripts/generate_helper_index.py
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Stage the plain JSON only: gzip stores an mtime, so the .gz differs
+          # on every run even when the content is identical.
+          git add index/recipes.json index/helpers.json
+
+          if git diff --staged --quiet; then
+            echo "Index unchanged."
+          else
+            git add index/recipes.json.gz index/helpers.json.gz
+            git commit -m "chore: update index [skip ci]"
+            git push
+          fi

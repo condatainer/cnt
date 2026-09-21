@@ -1,0 +1,92 @@
+#!/bin/bash
+#DESC: RStudio Server (with R from base image)
+
+#NCPUS: 4
+#MEM: 16G
+#TIME: 12:00:00
+
+#REQUIRED_OVERLAYS: r/{POSIT_R} rstudio-server r-build-essential
+#IMG_PACKAGES: 
+
+#PARAM: POSIT_R=? --rversion,-r "R version"
+#VALUE: POSIT_R=4.6.0,4.5.3,4.5.2,4.5.1,4.5.0,4.4.3,4.4.2,4.4.1,4.4.0,4.3.3,4.3.2,4.3.1,4.3.0,4.2.3,4.2.2,4.2.1,4.2.0,4.1.3,4.1.2,4.1.1,4.1.0,4.0.5,4.0.4,4.0.3,4.0.2,4.0.1,4.0.0
+#AUTOUPDATE:POSIT_R:docker:posit/r-base:^(\d+\.\d+\.\d+)-(?:focal|jammy|noble)(?:-[^-]+)?$>=4.0.0
+
+#PARAM: PASSWORD=? --password,-p "Password for authentication (empty for no auth)"
+
+# All per-instance runtime files live under $CNT_HELPER_STATE_DIR (per-job-id, NFS-visible).
+mkdir -p "$CNT_HELPER_STATE_DIR"
+
+# --server-data-dir: rserver sockets/PID/cookie-key. (With path limit 108 bytes rstudio/rstudio#15024).
+# RSTUDIO_DATA_HOME: rsession suspended sessions. Set to $CNT_HELPER_CWD/.rstudio so each project dir keeps its own session state.
+
+_PROXY_LINES=$(condatainer proxy export 2>/dev/null || true)
+
+cat > "$CNT_HELPER_STATE_DIR/rsession.sh" <<RSESSION
+#!/bin/bash
+source /etc/profile; [ -f /etc/bashrc ] && . /etc/bashrc; source "\$HOME/.bashrc" 2>/dev/null || true
+export MAMBA_ROOT_PREFIX=/ext3/env CONDA_PREFIX=/ext3/env CONDA_DEFAULT_ENV=env
+export CNT_CONDA_PREFIX=/ext3/env RETICULATE_PYTHON=/ext3/env/bin/python
+export RSTUDIO_DATA_HOME="${CNT_HELPER_CWD}/.rstudio"
+export IN_CONDATAINER=1 NCPUS=$NCPUS
+${_PROXY_LINES}
+/usr/lib/rstudio-server/bin/rsession "\$@"
+RSESSION
+chmod +x "$CNT_HELPER_STATE_DIR/rsession.sh"
+
+cat > "$CNT_HELPER_STATE_DIR/rsession.conf" <<CONF
+copilot-enabled=1
+session-timeout-minutes=0
+session-default-working-dir=$CNT_HELPER_CWD
+CONF
+
+cat > "$CNT_HELPER_STATE_DIR/database.conf" <<CONF
+provider=sqlite
+directory=${CNT_HELPER_STATE_DIR}
+CONF
+
+# Create minimal .Rproj and copy bundled .Rprofile on first run in this directory.
+_folder=$(basename "$CNT_HELPER_CWD")
+if [ ! -f "$CNT_HELPER_CWD/$_folder.Rproj" ]; then
+    cat > "$CNT_HELPER_CWD/$_folder.Rproj" <<'RPROJ'
+Version: 1.0
+RPROJ
+    if [ -f "${CNT_HELPER_SCRIPT_DIR}/.Rprofile" ] && [ ! -f "$CNT_HELPER_CWD/.Rprofile" ]; then
+        cp "${CNT_HELPER_SCRIPT_DIR}/.Rprofile" "$CNT_HELPER_CWD/.Rprofile"
+        condatainer _server_message "Copied .Rprofile (P3M binary repos) to ${CNT_HELPER_CWD}"
+    fi
+fi
+
+condatainer _server_message "Open project: rstudioapi::openProject(\"${CNT_HELPER_CWD}\")"
+
+if [ -n "${PASSWORD:-}" ]; then
+    condatainer _server_message "Password: ${PASSWORD}"
+    cat > "$CNT_HELPER_STATE_DIR/auth" <<EOF
+#!/bin/bash
+# RStudio passes username as \$1 and password via stdin.
+read _pass
+[ "\$_pass" = "${PASSWORD}" ] && exit 0 || exit 1
+EOF
+    chmod +x "$CNT_HELPER_STATE_DIR/auth"
+    _AUTH_OPTS="--auth-none=0 --auth-pam-helper-path=$CNT_HELPER_STATE_DIR/auth --auth-timeout-minutes=0"
+else
+    _AUTH_OPTS="--auth-none=1 --auth-timeout-minutes=0"
+fi
+
+/usr/lib/rstudio-server/bin/rserver \
+    --server-user "$(whoami)" \
+    --server-daemonize=0 \
+    --server-data-dir="$CNT_JOB_TMPDIR" \
+    --www-address="${CNT_HELPER_BIND_ADDR:-127.0.0.1}" \
+    --www-port="$CNT_HELPER_PORT" \
+    --rsession-which-r=/usr/bin/R \
+    --rsession-path="$CNT_HELPER_STATE_DIR/rsession.sh" \
+    --database-config-file="$CNT_HELPER_STATE_DIR/database.conf" \
+    --rsession-config-file="$CNT_HELPER_STATE_DIR/rsession.conf" \
+    $_AUTH_OPTS &
+PID=$!
+
+condatainer _server_ready \
+    --port "$CNT_HELPER_PORT"
+
+wait $PID

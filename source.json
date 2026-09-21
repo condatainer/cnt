@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "source": "https://github.com/condatainer/cnt",
+  "default_distro": "ubuntu24",
+  "oci": {
+    "push": "ghcr.io/condatainer/cnt",
+    "pull": ["ghcr.io/condatainer/cnt"],
+    "audience": "public"
+  }
+}
