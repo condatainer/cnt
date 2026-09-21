@@ -1,16 +1,16 @@
 #!/bin/bash
-#DESC: RStudio Server (with R from base image)
+#DESC: RStudio Server (with Conda R)
 
 #NCPUS: 4
 #MEM: 16G
 #TIME: 12:00:00
 
-#REQUIRED_OVERLAYS: r/{POSIT_R} rstudio-server r-build-essential
-#IMG_PACKAGES: 
+#REQUIRED_OVERLAYS: rstudio-server
+#IMG_PACKAGES: r-base={CONDA_R}
+#POST_INSTALL_CMD: mm pin add r-base
 
-#PARAM: POSIT_R=? --rversion,-r "R version"
-#VALUE: POSIT_R=4.6.0,4.5.3,4.5.2,4.5.1,4.5.0,4.4.3,4.4.2,4.4.1,4.4.0,4.3.3,4.3.2,4.3.1,4.3.0,4.2.3,4.2.2,4.2.1,4.2.0,4.1.3,4.1.2,4.1.1,4.1.0,4.0.5,4.0.4,4.0.3,4.0.2,4.0.1,4.0.0
-#AUTOUPDATE:POSIT_R:docker:posit/r-base:^(\d+\.\d+\.\d+)-(?:focal|jammy|noble)(?:-[^-]+)?$>=4.0.0
+#VALUE: CONDA_R=4.6.0,4.5.3,4.5.2,4.5.1,4.4.3,4.4.2,4.4.1,4.4.0,4.3.3,4.3.2,4.3.1,4.3.0,4.2.3,4.2.2,4.2.1,4.2.0,4.1.3,4.1.2,4.1.1,4.1.0,4.0.5,4.0.3,4.0.2,4.0.1,4.0.0
+#AUTOUPDATE:CONDA_R:conda-forge:r-base>=4.0.0
 
 #PARAM: PASSWORD=? --password,-p "Password for authentication (empty for no auth)"
 
@@ -59,16 +59,12 @@ provider=sqlite
 directory=${CNT_HELPER_STATE_DIR}
 CONF
 
-# Create minimal .Rproj and copy bundled .Rprofile on first run in this directory.
+# Create minimal .Rproj in working dir if missing.
 _folder=$(basename "$CNT_HELPER_CWD")
 if [ ! -f "$CNT_HELPER_CWD/$_folder.Rproj" ]; then
     cat > "$CNT_HELPER_CWD/$_folder.Rproj" <<'RPROJ'
 Version: 1.0
 RPROJ
-    if [ -f "${CNT_HELPER_SCRIPT_DIR}/.Rprofile" ] && [ ! -f "$CNT_HELPER_CWD/.Rprofile" ]; then
-        cp "${CNT_HELPER_SCRIPT_DIR}/.Rprofile" "$CNT_HELPER_CWD/.Rprofile"
-        condatainer _server_message "Copied .Rprofile (P3M binary repos) to ${CNT_HELPER_CWD}"
-    fi
 fi
 
 condatainer _server_message "Open project: rstudioapi::openProject(\"${CNT_HELPER_CWD}\")"
@@ -93,7 +89,8 @@ fi
     --server-data-dir="$CNT_JOB_TMPDIR" \
     --www-address="${CNT_HELPER_BIND_ADDR:-127.0.0.1}" \
     --www-port="$CNT_HELPER_PORT" \
-    --rsession-which-r=/usr/bin/R \
+    --rsession-which-r=/cnt_env/bin/R \
+    --rsession-ld-library-path=/cnt_env/lib \
     --rsession-path="$CNT_HELPER_STATE_DIR/rsession.sh" \
     --database-config-file="$CNT_HELPER_STATE_DIR/database.conf" \
     --rsession-config-file="$CNT_HELPER_STATE_DIR/rsession.conf" \
