@@ -34,6 +34,7 @@ SCHEDULER_HEADERS = ("#SBATCH", "#PBS", "#BSUB")
 RESERVED_PH = {"prefix"}
 # What $CNT_SRC_<name> can be: it is an environment variable.
 SOURCE_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+SOURCE_ARCHES = ("amd64", "arm64")
 ARCH_VALUES = ("native", "noarch")
 REDISTRIBUTE_VALUES = ("yes", "no")
 # Fetched with urllib, so the scheme must be one it speaks. `git` is excluded:
@@ -233,7 +234,7 @@ def check(path: Path, seen_targets: dict[str, str]) -> None:
     schedulers: set[str] = set()
     deps: list[str] = []
     updates: list[tuple[str, str, dict[str, str]]] = []
-    sources: list[tuple[str, str]] = []    # (name, url or "ask:<prompt>")
+    sources: list[tuple[str, str, str]] = []    # (name, arch or "", url or "ask:<prompt>")
 
     for line in headers:
         key = header_key(line)
@@ -295,15 +296,20 @@ def check(path: Path, seen_targets: dict[str, str]) -> None:
                 continue
             parts = value.split(None, 1)
             name, rest = (parts + [""])[:2]
+            arch = ""
+            word, _, tail = rest.partition(" ")
+            if word in SOURCE_ARCHES and tail.strip():
+                arch, rest = word, tail.strip()
             if not SOURCE_NAME_RE.match(name) or not rest:
-                err(rel, f"malformed #SOURCE: {line} — the form is a name "
+                err(rel, f"malformed #SOURCE: {line} — the form is a name, "
+                         f"an optional architecture ({', '.join(SOURCE_ARCHES)}), "
                          f"then one URL, or ask: and a prompt; the name "
                          f"holds only letters, digits and underscore")
             elif rest.startswith("ask:"):
                 if not rest[len("ask:"):].strip():
                     err(rel, f"#SOURCE:{name} ask: needs a prompt")
                 else:
-                    sources.append((name, rest))
+                    sources.append((name, arch, rest))
             elif re.search(r"\s", rest):
                 err(rel, f"#SOURCE:{name} takes one URL; mirrors are not supported")
             else:
@@ -312,7 +318,7 @@ def check(path: Path, seen_targets: dict[str, str]) -> None:
                     err(rel, f"#SOURCE:{name} url is not http(s) with a host: "
                              f"{rest}")
                 else:
-                    sources.append((name, rest))
+                    sources.append((name, arch, rest))
         elif key == "TYPE":
             if value.lower() not in ("app", "data"):
                 err(rel, f"#TYPE: must be app or data, got: {value}")
@@ -348,13 +354,20 @@ def check(path: Path, seen_targets: dict[str, str]) -> None:
     # --- #SOURCE: names and placeholders ---
     # A name is one input, and a token is substituted from a #PH:. One with no
     # #PH: behind it is left standing in the URL, which then fetches nothing.
-    seen_sources: set[str] = set()
-    for name, rest in sources:
-        if name in seen_sources:
-            err(rel, f"#SOURCE:{name} appears twice — one name is one input")
-        seen_sources.add(name)
+    # A name may repeat once per architecture, and is either all with an
+    # architecture or all without.
+    seen_sources: set[tuple[str, str]] = set()
+    for name, arch, rest in sources:
+        if (name, arch) in seen_sources:
+            where = f" for {arch}" if arch else ""
+            err(rel, f"#SOURCE:{name} appears twice{where} — one name is one input")
+        seen_sources.add((name, arch))
         for token in sorted(set(TOKEN_RE.findall(rest)) - set(pl_names)):
             err(rel, f"#SOURCE:{name} uses {{{token}}} with no matching #PH:")
+    for name in sorted({n for n, _ in seen_sources}):
+        if {a == "" for n, a in seen_sources if n == name} == {True, False}:
+            err(rel, f"#SOURCE:{name} is declared both with and without an "
+                     f"architecture; use one form")
 
     # Two open-ended placeholders with no literal between them cannot be matched
     # back apart: nothing says where the first value ends.

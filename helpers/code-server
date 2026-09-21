@@ -1,0 +1,34 @@
+#!/bin/bash
+#DESC: code-server (open-source VS Code, browser-based)
+
+#NCPUS: 4
+#MEM: 16G
+#TIME: 12:00:00
+
+#REQUIRED_OVERLAYS: code-server
+
+#PARAM: PASSWORD=? --password,-p "Password for authentication (empty for no auth)"
+
+condatainer _server_message \
+    "code-server cannot use Microsoft proprietary extensions such as Pylance or Copilot. Use vscode-server if you need them."
+
+if [ -n "${PASSWORD:-}" ]; then
+    condatainer _server_message "Password: ${PASSWORD}"
+    export PASSWORD
+    AUTH_OPTS="--auth password"
+else
+    AUTH_OPTS="--auth none"
+fi
+
+code-server \
+    --disable-update-check \
+    --bind-addr "${CNT_HELPER_BIND_ADDR:-127.0.0.1}:${CNT_HELPER_PORT}" \
+    $AUTH_OPTS \
+    "${CNT_HELPER_CWD:-.}" &
+PID=$!
+
+condatainer _server_ready \
+    --port "$CNT_HELPER_PORT" \
+    --url-path "?folder=${CNT_HELPER_CWD}"
+
+wait $PID
