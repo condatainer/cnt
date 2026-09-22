@@ -13,6 +13,7 @@
 #AUTOUPDATE:POSIT_R:docker:posit/r-base:^(\d+\.\d+\.\d+)-(?:jammy|noble|resolute)(?:-[^-]+)?$>=4.0.0
 
 #PARAM: PASSWORD=? --password,-p "Password for authentication (empty for no auth)"
+
 #PARAM: RPROFILE=no --write-rprofile "Write a starter .Rprofile (P3M binary repos) into this directory (yes/no)"
 #VALUE: RPROFILE=no | yes
 

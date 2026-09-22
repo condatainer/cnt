@@ -4,7 +4,7 @@
 
 #PH:version:2026.09.0-174,2026.06.0-242
 
-#AUTOUPDATE:version:json https://www.rstudio.com/wp-content/downloads.json path=rstudio.open_source.stable.server.installer.noble.url regex=rstudio-server-(\d+\.\d+\.\d+-\d+)- verify=head
+#AUTOUPDATE:version:json https://www.rstudio.com/wp-content/downloads.json path=rstudio.open_source.stable.server.installer.noble.url regex=rstudio-server-(\d+\.\d+\.\d+-\d+)- verify=head mode=latest
 
 Bootstrap: docker
 From: ubuntu:24.04
