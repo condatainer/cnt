@@ -68,7 +68,7 @@ REQUIRED = {
     "xml": {"url", "path"}, "git": {"url"},
     "dep": {"from"}, "cmd": {"run"},
 }
-COMMON_PARAMS = {"min", "max", "verify", "regex", "pin"}
+COMMON_PARAMS = {"min", "max", "verify", "regex", "pin", "mode"}
 OPTIONAL = {"json": {"path"}, "xml": {"path"}, "docker": {"filter"}}
 
 # Named patterns, so a hand-rolled `(\d+\.\d+)` does not silently truncate.
@@ -646,10 +646,14 @@ def write_pl(h: Header, text: str, versions: list[str]) -> Result:
     current, sep = decode_values(m.group(1))
     keep = [v for v in current if v != "*"]
 
-    missing = [v for v in keep if v not in versions]
-    if missing:
-        return Result("fail", f"upstream lost {len(missing)} value(s) "
-                              f"({', '.join(missing[:3])}…) — refusing to replace")
+    # mode=latest: the source only ever reports the current value, so an
+    # older list entry being absent from it is expected, not a sign the fetch
+    # broke.
+    if h.params.get("mode") != "latest":
+        missing = [v for v in keep if v not in versions]
+        if missing:
+            return Result("fail", f"upstream lost {len(missing)} value(s) "
+                                  f"({', '.join(missing[:3])}…) — refusing to replace")
 
     fresh = [v for v in versions if v not in keep]
     if keep and fresh:
