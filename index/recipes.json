@@ -1,43 +1,58 @@
 {
   "grch38/genome/gencode": {
     "deps": ["samtools/1.24>=1.10"],
-    "description": "GRCh38 primary assembly genome FASTA, GENCODE naming",
+    "description": "GRCh38 primary-assembly genome FASTA with GENCODE sequence names",
     "path": "recipes/grch38/genome/gencode",
     "type": "data",
     "url": "https://www.gencodegenes.org/human/"
   },
   "grch38/gtf-gencode": {
-    "description": "GENCODE {gencode_version} comprehensive gene annotation GTF for GRCh38",
+    "description": "GENCODE {gencode_version} GRCh38 comprehensive primary-assembly annotation GTF",
     "is_template": true,
     "path": "recipes/grch38/gtf-gencode",
     "ph": {
       "gencode_version": ["50", "49", "48", "47", "46", "45", "44", "43", "42", "41", "40", "39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26", "25", "24", "23", "22"]
     },
-    "target_template": "grch38/gtf-gencode/{gencode_version}",
+    "target_template": "grch38/gtf/gencode/{gencode_version}",
     "type": "data",
     "url": "https://www.gencodegenes.org/human/"
   },
   "grch38/salmon-gencode": {
-    "deps": ["salmon/{salmon_version}", "grch38/genome/gencode", "grch38/transcript-gencode/{gencode_version}"],
-    "description": "Salmon {salmon_version} index for GRCh38 GENCODE {gencode_version}, with decoys",
+    "deps": ["salmon/{salmon_version}", "grch38/transcript/gencode/{gencode_version}"],
+    "description": "Salmon {salmon_version} transcriptome index for GENCODE {gencode_version} GRCh38 (k-mer {kmer_length})",
     "is_template": true,
     "path": "recipes/grch38/salmon-gencode",
     "ph": {
       "gencode_version": ["50", "49", "48", "47", "46", "45", "44", "43", "42", "41", "40", "39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26", "25", "24", "23"],
+      "kmer_length": ["31", "*"],
       "salmon_version": ["1.11.4", "1.10.3", "1.10.2", "1.10.1", "1.10.0", "1.9.0"]
     },
-    "target_template": "grch38/salmon/{salmon_version}/gencode{gencode_version}",
+    "target_template": "grch38/salmon/{salmon_version}/gencode{gencode_version}-k{kmer_length}",
+    "type": "data",
+    "url": "https://combine-lab.github.io/salmon/"
+  },
+  "grch38/salmon-gencode-decoy": {
+    "deps": ["salmon/{salmon_version}", "grch38/genome/gencode", "grch38/transcript/gencode/{gencode_version}"],
+    "description": "Salmon {salmon_version} decoy-aware index for GENCODE {gencode_version} GRCh38 (k-mer {kmer_length})",
+    "is_template": true,
+    "path": "recipes/grch38/salmon-gencode-decoy",
+    "ph": {
+      "gencode_version": ["50", "49", "48", "47", "46", "45", "44", "43", "42", "41", "40", "39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26", "25", "24", "23"],
+      "kmer_length": ["31", "*"],
+      "salmon_version": ["1.11.4", "1.10.3", "1.10.2", "1.10.1", "1.10.0", "1.9.0"]
+    },
+    "target_template": "grch38/salmon/{salmon_version}/gencode{gencode_version}-decoy-k{kmer_length}",
     "type": "data",
     "url": "https://combine-lab.github.io/salmon/"
   },
   "grch38/transcript-gencode": {
-    "description": "GENCODE {gencode_version} transcript sequences FASTA for GRCh38",
+    "description": "GENCODE {gencode_version} GRCh38 transcript sequences FASTA",
     "is_template": true,
     "path": "recipes/grch38/transcript-gencode",
     "ph": {
       "gencode_version": ["50", "49", "48", "47", "46", "45", "44", "43", "42", "41", "40", "39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26", "25", "24", "23"]
     },
-    "target_template": "grch38/transcript-gencode/{gencode_version}",
+    "target_template": "grch38/transcript/gencode/{gencode_version}",
     "type": "data",
     "url": "https://www.gencodegenes.org/human/"
   },
