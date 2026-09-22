@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-#DESC:GENCODE {gencode_version} transcript sequences FASTA for GRCh38
+#DESC:GENCODE {gencode_version} GRCh38 transcript sequences FASTA
 #URL:https://www.gencodegenes.org/human/
-#TARGET:grch38/transcript-gencode/{gencode_version}
+#TARGET:grch38/transcript/gencode/{gencode_version}
 
 #PH:gencode_version:23-50
 
@@ -9,7 +9,7 @@
 
 #SOURCE:transcripts https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_{gencode_version}/gencode.v{gencode_version}.transcripts.fa.gz
 
-#ENV:TRANSCRIPT_FASTA={prefix}/gencode.v{gencode_version}.transcripts.fa   ## GENCODE {gencode_version} transcript sequences FASTA, GRCh38
+#ENV:TRANSCRIPT_FASTA={prefix}/gencode.v{gencode_version}.transcripts.fa   ## GENCODE {gencode_version} GRCh38 transcript sequences FASTA
 
 cd "$CNT_PREFIX"
 

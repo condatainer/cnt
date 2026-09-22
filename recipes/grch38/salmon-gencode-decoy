@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-#DESC:Salmon {salmon_version} transcriptome index for GENCODE {gencode_version} GRCh38 (k-mer {kmer_length})
+#DESC:Salmon {salmon_version} decoy-aware index for GENCODE {gencode_version} GRCh38 (k-mer {kmer_length})
 #URL:https://combine-lab.github.io/salmon/
-#TARGET:grch38/salmon/{salmon_version}/gencode{gencode_version}-k{kmer_length}
+#TARGET:grch38/salmon/{salmon_version}/gencode{gencode_version}-decoy-k{kmer_length}
 
 #PH:salmon_version:1.11.4,1.10.3,1.10.2,1.10.1,1.10.0,1.9.0
 #PH:gencode_version:23-50
@@ -11,19 +11,27 @@
 #AUTOUPDATE:gencode_version:dep from=grch38/transcript/gencode
 
 #DEP:salmon/{salmon_version}
+#DEP:grch38/genome/gencode
 #DEP:grch38/transcript/gencode/{gencode_version}
 
-#ENV:SALMON_INDEX_DIR={prefix}   ## Salmon {salmon_version} transcriptome index for GENCODE {gencode_version} GRCh38 (k-mer {kmer_length})
+#ENV:SALMON_INDEX_DIR={prefix}   ## Salmon {salmon_version} decoy-aware index for GENCODE {gencode_version} GRCh38 (k-mer {kmer_length})
 
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=24G
 #SBATCH --time=2:00:00
 #SBATCH --job-name=salmon-index
 
+cd "$CNT_TMP"
+
+echo "Building the gentrome and decoys" >&2
+cat "$TRANSCRIPT_FASTA" "$GENOME_FASTA" > gentrome.fa
+cut -f 1 "${GENOME_FASTA}.fai" > decoys.txt
+
 echo "Building Salmon index for $CNT_NAME" >&2
 salmon index \
     -p "$NCPUS" \
-    -t "$TRANSCRIPT_FASTA" \
+    -t gentrome.fa \
+    -d decoys.txt \
     -k {kmer_length} \
     -i "$CNT_PREFIX" \
     --gencode
