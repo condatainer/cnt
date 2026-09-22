@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate the Bioconductor mapping tables in helpers/.Rprofile.
+"""Regenerate the Bioconductor mapping tables in assets/helpers/rstudio-server/.Rprofile.
 
 Both tables come from Bioconductor's own config.yaml:
 
@@ -20,7 +20,7 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-RPROFILE = ROOT / "helpers" / ".Rprofile"
+RPROFILE = ROOT / "assets" / "helpers" / "rstudio-server" / ".Rprofile"
 CONFIG_URL = "https://bioconductor.org/config.yaml"
 
 # Posit Package Manager has no snapshots from before this release.
@@ -121,7 +121,7 @@ def main() -> int:
     ap.add_argument("--config", type=Path, help="read this config.yaml instead of fetching it")
     args = ap.parse_args()
 
-    label = "helpers/.Rprofile"
+    label = "assets/helpers/rstudio-server/.Rprofile"
     try:
         config = args.config.read_text() if args.config else fetch(CONFIG_URL)
         text, updated, what = regenerate(config)

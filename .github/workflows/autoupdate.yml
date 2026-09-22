@@ -78,7 +78,7 @@ jobs:
           # Recipes and index move together: a #PH: list is index content, so
           # one without the other leaves the index describing versions the
           # recipes no longer offer.
-          git add recipes index helpers/.Rprofile
+          git add recipes index assets/helpers/rstudio-server/.Rprofile helpers/rstudio-server
 
           if git diff --staged --quiet; then
             echo "Everything is current."

@@ -25,9 +25,11 @@
   if (!is.na(id) && id == 'ubuntu') {
     if (!is.na(ver_major) && ver_major == 22) distro_codename <- 'jammy'
     if (!is.na(ver_major) && ver_major == 24) distro_codename <- 'noble'
+    if (!is.na(ver_major) && ver_major == 26) distro_codename <- 'resolute'
   }
   if (is.na(distro_codename) && !is.na(id) && id == 'debian') {
-    if (!is.na(ver_major) && ver_major == 12) distro_codename <- 'bookworm'
+    # bookworm (12) is end-of-support on P3M as of docs.posit.co/rspm/admin/serving-binaries.html
+    # if (!is.na(ver_major) && ver_major == 12) distro_codename <- 'bookworm'
     if (!is.na(ver_major) && ver_major == 13) distro_codename <- 'trixie'
   }
   if (is.na(distro_codename)) {
@@ -149,8 +151,6 @@
 
   } else {
     # Bioconductor logic (latest_cran is ignored for bioconductor)
-    options(BioC_mirror = 'https://packagemanager.posit.co/bioconductor/latest')
-    options(BIOCONDUCTOR_CONFIG_FILE = 'https://packagemanager.posit.co/bioconductor/latest/config.yaml')
 
     # Determine which Bioconductor version to use
     if (!is.null(bioc_version) && nzchar(bioc_version)) {
@@ -178,6 +178,9 @@
 
     # Set environment variable for validated version
     Sys.setenv(R_BIOC_VERSION = bioc_version)
+
+    options(BioC_mirror = sprintf('https://packagemanager.posit.co/bioconductor/__linux__/%s/latest', distro_codename))
+    options(BIOCONDUCTOR_CONFIG_FILE = 'https://packagemanager.posit.co/bioconductor/latest/config.yaml')
 
     # Choose snapshot date or latest
     if (bioc_version %in% names(bioc_to_p3m_date)) {
