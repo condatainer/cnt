@@ -376,8 +376,13 @@ def check(path: Path, seen_targets: dict[str, str]) -> None:
             err(rel, f"#TARGET: has {{{a}}}{{{b}}} adjacent and both open-ended "
                      f"— a concrete name cannot be split back into them")
 
+    # --- a template is named <name>-template ---
+    stem = rel[len("recipes/"):].removesuffix(".def")
+    if bool(pl_names) != stem.endswith("-template"):
+        err(rel, "a template — and only a template — is named <name>-template")
+
     # --- module name collisions ---
-    module = target or (rel[len("recipes/"):].removesuffix(".def"))
+    module = target or stem
     if module in seen_targets:
         err(rel, f"module {module} already built by {seen_targets[module]}")
     else:

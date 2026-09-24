@@ -11,6 +11,10 @@ version conda never packaged, or data.
 module `cellranger/9.0.1`. A `.def` builds a container; anything else is a shell
 recipe. Do not add a recipe whose `#TARGET:` collides with an existing module.
 
+**A template is named `<name>-template`, and only a template is.** `recipes/code-server-template`
+builds `code-server/{version}`, and `code-server` alone resolves to its newest version.
+`recipes/grch38/gtf-gencode-template` builds `grch38/gtf/gencode/{gencode_version}`.
+
 **Declare every dependency the base image does not provide.** A tool a script
 build uses is a `#DEP:`, except the ones the base image ships: the shell and
 core utilities, `tar`, `gzip`, `pigz`, `bzip2`, `xz`, `unzip`, `curl`,and `wget`.
