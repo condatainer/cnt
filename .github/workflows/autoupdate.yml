@@ -28,9 +28,9 @@ jobs:
   autoupdate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.x'
 
@@ -113,6 +113,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_STATUS: ${{ job.status }}
         run: |
           failures=$(grep '^\[FAIL\]' /tmp/report.txt 2>/dev/null || true)
 
@@ -126,12 +127,15 @@ jobs:
           # --state all, so a failure that comes back reopens the same thread
           # rather than starting a pile of duplicates. Closing it by hand does
           # not snooze it: the next failing run reopens it.
+          # read returns 1 at EOF, which is what no issue yet looks like.
+          number="" state=""
           read -r number state < <(gh issue list --state all --label autoupdate \
             --limit 1 --json number,state \
-            --jq '.[0] // empty | "\(.number) \(.state)"')
+            --jq '.[0] // empty | "\(.number) \(.state)"') || true
 
           if [ -z "$failures" ]; then
-            if [ "$state" = "OPEN" ]; then
+            # A run that broke before reporting has no [FAIL] lines either.
+            if [ "$state" = "OPEN" ] && [ "$JOB_STATUS" = "success" ]; then
               gh issue close "$number" \
                 --comment "Every source succeeded in [this run]($RUN_URL)."
             fi
