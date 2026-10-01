@@ -5,14 +5,14 @@
 #MEM: 16G
 #TIME: 12:00:00
 
-#REQUIRED_OVERLAYS: rstudio-server
+#REQUIRED_OVERLAYS: base rstudio-server
 #IMG_PACKAGES: r-base={CONDA_R}
 #POST_INSTALL_CMD: mm pin add r-base
 
 #VALUE: CONDA_R=4.6.0,4.5.3,4.5.2,4.5.1,4.4.3,4.4.2,4.4.1,4.4.0,4.3.3,4.3.2,4.3.1,4.3.0,4.2.3,4.2.2,4.2.1,4.2.0,4.1.3,4.1.2,4.1.1,4.1.0,4.0.5,4.0.3,4.0.2,4.0.1,4.0.0
-#AUTOUPDATE:CONDA_R:conda-forge:r-base>=4.0.0
+#AUTOUPDATE:CONDA_R:conda conda-forge::r-base regex=@version min=4.0.0
 
-#PARAM: PASSWORD=? --password,-p "Password for authentication (empty for no auth)"
+#PARAM: PASSWORD=? --password "Password for authentication (empty for no auth)"
 
 # All per-instance runtime files live under $CNT_HELPER_STATE_DIR (per-job-id, NFS-visible).
 mkdir -p "$CNT_HELPER_STATE_DIR"

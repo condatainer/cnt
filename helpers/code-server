@@ -7,7 +7,7 @@
 
 #REQUIRED_OVERLAYS: code-server
 
-#PARAM: PASSWORD=? --password,-p "Password for authentication (empty for no auth)"
+#PARAM: PASSWORD=? --password "Password for authentication (empty for no auth)"
 
 condatainer _server_message \
     "code-server cannot use Microsoft proprietary extensions such as Pylance or Copilot. Use vscode-server if you need them."

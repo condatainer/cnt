@@ -6,9 +6,9 @@ file; this script is the only thing that writes recipes.
 
     #AUTOUPDATE:<name>:<source> [<param>=<value> ...]
 
-<name> says what to rewrite, inferred from the recipe: a #PH: key rewrites the
-value list, a #DEP: module bumps its preferred version, anything else is a body
-pin located by `regex`.
+<name> says what to rewrite, inferred from the file: a #PH: key (recipe) or a
+#VALUE: key (helper) rewrites the value list, a #DEP: module bumps its
+preferred version, anything else is a body pin located by `regex`.
 
     python3 scripts/autoupdate.py [--dry-run] [--only NAME]
 """
@@ -29,6 +29,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPES_DIR = ROOT / "recipes"
+HELPERS_DIR = ROOT / "helpers"
 
 SKIP_SUFFIXES = (".py", ".md")
 
@@ -365,30 +366,33 @@ def src_github(p: dict[str, str]) -> list[str]:
 def src_docker(p: dict[str, str]) -> list[str]:
     """Docker Hub tags, following `next` to the end.
 
-    `filter=` is Docker Hub's server-side substring match — optional, and only
-    ever a cost saving: posit/r-base is 16 pages unfiltered and 2 with
-    `filter=noble`. Correctness never depends on it.
+    `filter=` is Docker Hub's server-side substring match; a comma list lists
+    each substring and merges the tags. An image over 1000 tags needs it,
+    since anonymous requests cannot page past that.
     """
     image = p["image"]
     if "/" not in image:
         image = f"library/{image}"
-    url = f"https://hub.docker.com/v2/repositories/{image}/tags?page_size=100"
-    if p.get("filter"):
-        url += f"&name={urllib.parse.quote(p['filter'])}"
+    base = f"https://hub.docker.com/v2/repositories/{image}/tags?page_size=100"
+    starts = [f"{base}&name={urllib.parse.quote(f)}" for f in p["filter"].split(",")] \
+        if p.get("filter") else [base]
 
     tags, seen = [], set()
-    for _ in range(MAX_PAGES):
-        if not url:
-            return apply_regex(tags, p.get("regex"))
-        # A `next` that points back at a page already fetched is a loop, and
-        # catching it here fails on the second request rather than the 200th.
-        if url in seen:
-            raise RuntimeError(f"image {image} paginates in a cycle at {url}")
-        seen.add(url)
-        data = json.loads(fetch(url))
-        tags += [t.get("name", "") for t in data.get("results", [])]
-        url = data.get("next")
-    raise RuntimeError(truncated("image", image))
+    for url in starts:
+        for _ in range(MAX_PAGES):
+            if not url:
+                break
+            # A `next` that points back at a page already fetched is a loop, and
+            # catching it here fails on the second request rather than the 200th.
+            if url in seen:
+                raise RuntimeError(f"image {image} paginates in a cycle at {url}")
+            seen.add(url)
+            data = json.loads(fetch(url))
+            tags += [t.get("name", "") for t in data.get("results", [])]
+            url = data.get("next")
+        else:
+            raise RuntimeError(truncated("image", image))
+    return apply_regex(tags, p.get("regex"))
 
 
 SOURCES = {
@@ -637,13 +641,19 @@ def downloadable(text: str, token: str, version: str) -> bool:
     return all(head_ok(u) for u in checkable_urls(filled) if version in u)
 
 
+def value_re(name: str) -> re.Pattern:
+    """A value list: a recipe's `#PH:name:` or a helper's `#VALUE: name=`.
+    Group 1 is the prefix, group 2 the values."""
+    n = re.escape(name)
+    return re.compile(rf"^(#PH:{n}:|#VALUE:[ \t]*{n}=)(.*)$", re.M)
+
+
 def write_pl(h: Header, text: str, versions: list[str]) -> Result:
-    """Rewrite a #PH: list, extending never replacing."""
-    rx = re.compile(rf"^#PH:{re.escape(h.name)}:(.*)$", re.M)
-    m = rx.search(text)
+    """Rewrite a #PH: or #VALUE: list, extending never replacing."""
+    m = value_re(h.name).search(text)
     if m is None:
-        return Result("fail", f"no #PH:{h.name}: line")
-    current, sep = decode_values(m.group(1))
+        return Result("fail", f"no #PH:{h.name}: or #VALUE: {h.name}= line")
+    current, sep = decode_values(m.group(2))
     keep = [v for v in current if v != "*"]
 
     # mode=latest: the source only ever reports the current value, so an
@@ -675,7 +685,7 @@ def write_pl(h: Header, text: str, versions: list[str]) -> Result:
     if "*" in current:
         merged.append("*")
 
-    new_line = f"#PH:{h.name}:{encode_values(merged, sep)}"
+    new_line = m.group(1) + encode_values(merged, sep)
     if new_line == m.group(0):
         return Result("skip", "up to date")
     # A line can change without gaining a value, in two quite different ways,
@@ -760,7 +770,7 @@ def write_pin(h: Header, text: str, versions: list[str]) -> Result:
 def apply_header(h: Header, versions: list[str], dry_run: bool) -> Result:
     text = h.path.read_text(encoding="utf-8")
 
-    if re.search(rf"^#PH:{re.escape(h.name)}:", text, re.M):
+    if value_re(h.name).search(text):
         result = write_pl(h, text, versions)
     elif re.search(rf"^#DEP:{re.escape(h.name)}/", text, re.M):
         result = write_dep(h, text, versions)
@@ -825,14 +835,15 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true",
                     help="report what would change without writing")
     ap.add_argument("--only", metavar="NAME",
-                    help="limit to headers whose name or recipe path contains NAME")
+                    help="limit to headers whose name or file path contains NAME")
     args = ap.parse_args()
 
     headers = []
-    for path in sorted(RECIPES_DIR.rglob("*")):
-        if not path.is_file() or path.suffix in SKIP_SUFFIXES:
-            continue
-        headers += read_headers(path)
+    for root in (RECIPES_DIR, HELPERS_DIR):
+        for path in sorted(root.rglob("*")):
+            if not path.is_file() or path.suffix in SKIP_SUFFIXES:
+                continue
+            headers += read_headers(path)
 
     if args.only:
         headers = [h for h in headers if args.only in h.name or args.only in h.rel]
