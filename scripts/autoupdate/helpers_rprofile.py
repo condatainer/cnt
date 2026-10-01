@@ -31,7 +31,9 @@ END = "  # END generated\n"
 
 
 def fetch(url: str) -> str:
-    with urllib.request.urlopen(url, timeout=30) as resp:
+    # bioconductor.org answers 403 to urllib's default User-Agent.
+    req = urllib.request.Request(url, headers={"User-Agent": "condatainer-autoupdate"})
+    with urllib.request.urlopen(req, timeout=30) as resp:
         return resp.read().decode()
 
 
