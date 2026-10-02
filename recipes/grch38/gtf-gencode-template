@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #DESC:GENCODE {gencode_version} GRCh38 comprehensive primary-assembly annotation GTF
 #URL:https://www.gencodegenes.org/human/
+#ARCH:noarch
 #TARGET:grch38/gtf/gencode/{gencode_version}
 
 #PH:gencode_version:22-50

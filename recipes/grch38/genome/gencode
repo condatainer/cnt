@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #DESC:GRCh38 primary-assembly genome FASTA with GENCODE sequence names
 #URL:https://www.gencodegenes.org/human/
+#ARCH:noarch
 
 #AUTOUPDATE:samtools:conda bioconda::samtools regex=^v?(\d+\.\d+(?:\.\d+)?)$
 
