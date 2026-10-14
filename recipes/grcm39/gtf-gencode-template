@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+#DESC:GENCODE M{gencode_version} GRCm39 comprehensive primary-assembly annotation GTF
+#URL:https://www.gencodegenes.org/mouse/
+#ARCH:noarch
+#TARGET:grcm39/gtf/gencode/M{gencode_version}
+
+#PH:gencode_version:26-39
+
+#AUTOUPDATE:gencode_version:listing https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/ regex=release_M(\d+)/ min=26 verify=head
+
+#SOURCE:gtf https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M{gencode_version}/gencode.vM{gencode_version}.primary_assembly.annotation.gtf.gz
+
+#ENV:ANNOTATION_GTF={prefix}/gencode.vM{gencode_version}.primary_assembly.annotation.gtf   ## GENCODE M{gencode_version} GRCm39 comprehensive primary-assembly annotation GTF
+
+cd "$CNT_PREFIX"
+
+echo "Decompressing the annotation" >&2
+pigz -dc -p "${NCPUS:-4}" "$CNT_SRC_gtf" > "gencode.vM{gencode_version}.primary_assembly.annotation.gtf"

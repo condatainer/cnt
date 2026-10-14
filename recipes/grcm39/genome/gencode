@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#DESC:GRCm39 primary-assembly genome FASTA with GENCODE sequence names
+#URL:https://www.gencodegenes.org/mouse/
+#ARCH:noarch
+
+#AUTOUPDATE:samtools:conda bioconda::samtools regex=^v?(\d+\.\d+(?:\.\d+)?)$
+
+#DEP:samtools/1.24>=1.10
+#SOURCE:genome https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M39/GRCm39.primary_assembly.genome.fa.gz
+
+#ENV:GENOME_FASTA={prefix}/GRCm39.primary_assembly.genome.fa   ## GRCm39 primary-assembly genome FASTA with GENCODE sequence names
+
+# The genome FASTA is the same in every GENCODE mouse release from M26 on. Release M39 only
+# records when this recipe was written, and any annotation release from M26 pairs with it.
+cd "$CNT_PREFIX"
+
+echo "Decompressing the genome" >&2
+pigz -dc -p "${NCPUS:-4}" "$CNT_SRC_genome" > GRCm39.primary_assembly.genome.fa
+
+echo "Indexing with samtools faidx" >&2
+samtools faidx GRCm39.primary_assembly.genome.fa

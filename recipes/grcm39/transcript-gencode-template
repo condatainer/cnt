@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+#DESC:GENCODE M{gencode_version} GRCm39 transcript sequences FASTA
+#URL:https://www.gencodegenes.org/mouse/
+#ARCH:noarch
+#TARGET:grcm39/transcript/gencode/M{gencode_version}
+
+#PH:gencode_version:26-39
+
+#AUTOUPDATE:gencode_version:listing https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/ regex=release_M(\d+)/ min=26 verify=head
+
+#SOURCE:transcripts https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M{gencode_version}/gencode.vM{gencode_version}.transcripts.fa.gz
+
+#ENV:TRANSCRIPT_FASTA={prefix}/gencode.vM{gencode_version}.transcripts.fa   ## GENCODE M{gencode_version} GRCm39 transcript sequences FASTA
+
+cd "$CNT_PREFIX"
+
+echo "Decompressing the transcripts" >&2
+pigz -dc -p "${NCPUS:-4}" "$CNT_SRC_transcripts" > "gencode.vM{gencode_version}.transcripts.fa"

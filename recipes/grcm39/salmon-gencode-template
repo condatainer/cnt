@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+#DESC:Salmon {salmon_version} transcriptome index for GENCODE M{gencode_version} GRCm39 (k-mer {kmer_length})
+#URL:https://combine-lab.github.io/salmon/
+#TARGET:grcm39/salmon/{salmon_version}/gencodeM{gencode_version}-k{kmer_length}
+
+#PH:salmon_version:2.8.0,2.7.0,2.6.0,2.5.1,2.5.0,2.4.1,2.4.0,2.3.4,2.3.3,2.3.2,2.3.1,2.3.0,2.2.1,2.1.2,2.1.1,2.1.0,2.0.1,2.0.0,1.12.1,1.12.0,1.11.4,1.10.3,1.10.2,1.10.1,1.10.0,1.9.0
+#PH:gencode_version:26-39
+#PH:kmer_length:31,*
+
+#AUTOUPDATE:salmon_version:conda bioconda::salmon min=1.9.0
+#AUTOUPDATE:gencode_version:dep from=grcm39/transcript/gencode
+
+#DEP:salmon/{salmon_version}
+#DEP:grcm39/transcript/gencode/M{gencode_version}
+
+#ENV:SALMON_INDEX_DIR={prefix}   ## Salmon {salmon_version} transcriptome index for GENCODE M{gencode_version} GRCm39 (k-mer {kmer_length})
+
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=24G
+#SBATCH --time=2:00:00
+#SBATCH --job-name=salmon-index
+
+echo "Building Salmon index for $CNT_NAME" >&2
+salmon index \
+    -p "$NCPUS" \
+    -t "$TRANSCRIPT_FASTA" \
+    -k {kmer_length} \
+    -i "$CNT_PREFIX" \
+    --gencode
