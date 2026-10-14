@@ -67,6 +67,63 @@
     "type": "data",
     "url": "https://www.gencodegenes.org/human/"
   },
+  "grcm39/genome/gencode": {
+    "deps": ["samtools/1.24>=1.10"],
+    "description": "GRCm39 primary-assembly genome FASTA with GENCODE sequence names",
+    "path": "recipes/grcm39/genome/gencode",
+    "type": "data",
+    "url": "https://www.gencodegenes.org/mouse/"
+  },
+  "grcm39/gtf-gencode-template": {
+    "description": "GENCODE M{gencode_version} GRCm39 comprehensive primary-assembly annotation GTF",
+    "is_template": true,
+    "path": "recipes/grcm39/gtf-gencode-template",
+    "ph": {
+      "gencode_version": ["39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26"]
+    },
+    "target_template": "grcm39/gtf/gencode/M{gencode_version}",
+    "type": "data",
+    "url": "https://www.gencodegenes.org/mouse/"
+  },
+  "grcm39/salmon-gencode-decoy-template": {
+    "deps": ["salmon/{salmon_version}", "grcm39/genome/gencode", "grcm39/transcript/gencode/M{gencode_version}"],
+    "description": "Salmon {salmon_version} decoy-aware index for GENCODE M{gencode_version} GRCm39 (k-mer {kmer_length})",
+    "is_template": true,
+    "path": "recipes/grcm39/salmon-gencode-decoy-template",
+    "ph": {
+      "gencode_version": ["39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26"],
+      "kmer_length": ["31", "*"],
+      "salmon_version": ["2.8.0", "2.7.0", "2.6.0", "2.5.1", "2.5.0", "2.4.1", "2.4.0", "2.3.4", "2.3.3", "2.3.2", "2.3.1", "2.3.0", "2.2.1", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0", "1.12.1", "1.12.0", "1.11.4", "1.10.3", "1.10.2", "1.10.1", "1.10.0", "1.9.0"]
+    },
+    "target_template": "grcm39/salmon/{salmon_version}/gencodeM{gencode_version}-decoy-k{kmer_length}",
+    "type": "data",
+    "url": "https://combine-lab.github.io/salmon/"
+  },
+  "grcm39/salmon-gencode-template": {
+    "deps": ["salmon/{salmon_version}", "grcm39/transcript/gencode/M{gencode_version}"],
+    "description": "Salmon {salmon_version} transcriptome index for GENCODE M{gencode_version} GRCm39 (k-mer {kmer_length})",
+    "is_template": true,
+    "path": "recipes/grcm39/salmon-gencode-template",
+    "ph": {
+      "gencode_version": ["39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26"],
+      "kmer_length": ["31", "*"],
+      "salmon_version": ["2.8.0", "2.7.0", "2.6.0", "2.5.1", "2.5.0", "2.4.1", "2.4.0", "2.3.4", "2.3.3", "2.3.2", "2.3.1", "2.3.0", "2.2.1", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0", "1.12.1", "1.12.0", "1.11.4", "1.10.3", "1.10.2", "1.10.1", "1.10.0", "1.9.0"]
+    },
+    "target_template": "grcm39/salmon/{salmon_version}/gencodeM{gencode_version}-k{kmer_length}",
+    "type": "data",
+    "url": "https://combine-lab.github.io/salmon/"
+  },
+  "grcm39/transcript-gencode-template": {
+    "description": "GENCODE M{gencode_version} GRCm39 transcript sequences FASTA",
+    "is_template": true,
+    "path": "recipes/grcm39/transcript-gencode-template",
+    "ph": {
+      "gencode_version": ["39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26"]
+    },
+    "target_template": "grcm39/transcript/gencode/M{gencode_version}",
+    "type": "data",
+    "url": "https://www.gencodegenes.org/mouse/"
+  },
   "ubuntu24/base": {
     "description": "CondaTainer Ubuntu 24.04 base image",
     "path": "recipes/ubuntu24/base.def",
