@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#DESC:STAR {star_version} index of GRCh38 with GENCODE {gencode_version} annotation, read length {read_length}
+#URL:https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf
+#TARGET:grch38/star/{star_version}/gencode{gencode_version}-{read_length}
+
+#PH:star_version:2.7.11b,2.7.11a,2.7.10b,2.7.10a,2.7.9a,2.7.8a,2.7.7a,2.7.6a,2.7.5c,2.7.5b,2.7.5a,2.7.4a,2.7.3a,2.7.2c,2.7.2b,2.7.2a,2.7.1a,2.7.0f,2.7.0e,2.7.0d,2.7.0b
+#PH:gencode_version:22-50
+#PH:read_length:101,151,*
+
+#AUTOUPDATE:star_version:conda bioconda::star min=2.7.0b
+#AUTOUPDATE:gencode_version:dep from=grch38/gtf/gencode
+
+#DEP:star/{star_version}
+#DEP:grch38/genome/gencode
+#DEP:grch38/gtf/gencode/{gencode_version}
+
+#ENV:STAR_INDEX_DIR={prefix}   ## STAR {star_version} index of GRCh38 with GENCODE {gencode_version} annotation, read length {read_length}
+
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=42G
+#SBATCH --time=2:00:00
+#SBATCH --job-name=star-index
+
+cd "$CNT_TMP"
+
+echo "Building the STAR index for $CNT_NAME" >&2
+STAR --runThreadN "$NCPUS" \
+    --runMode genomeGenerate \
+    --genomeDir "$CNT_PREFIX" \
+    --genomeFastaFiles "$GENOME_FASTA" \
+    --sjdbGTFfile "$ANNOTATION_GTF" \
+    --sjdbOverhang $(({read_length} - 1)) \
+    --outFileNamePrefix "$CNT_TMP/"
