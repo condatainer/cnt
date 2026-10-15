@@ -179,7 +179,7 @@
     "is_template": true,
     "path": "recipes/ubuntu24/rstudio-server-template.def",
     "ph": {
-      "version": ["2026.09.0-174", "2026.06.0-242"]
+      "version": ["2026.10.0-233", "2026.09.0-174", "2026.06.0-242"]
     },
     "target_template": "ubuntu24/rstudio-server/{version}",
     "type": "os",

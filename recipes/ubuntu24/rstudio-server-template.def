@@ -2,7 +2,7 @@
 #URL:https://posit.co/products/open-source/rstudio-server/
 #TARGET:ubuntu24/rstudio-server/{version}
 
-#PH:version:2026.09.0-174,2026.06.0-242
+#PH:version:2026.10.0-233,2026.09.0-174,2026.06.0-242
 
 #AUTOUPDATE:version:json https://www.rstudio.com/wp-content/downloads.json path=rstudio.open_source.stable.server.installer.noble.url regex=rstudio-server-(\d+\.\d+\.\d+-\d+)- verify=head mode=latest
 
