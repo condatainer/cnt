@@ -463,7 +463,8 @@ def build_namespaces() -> dict[str, list[str]]:
 
 def src_dep(p: dict[str, str], namespaces: dict[str, list[str]]) -> list[str]:
     """Derive from what a dependency publishes. `from=` may list several,
-    in which case the value must exist in all of them."""
+    in which case the value must exist in all of them. `regex=` captures the
+    placeholder value out of a published name such as `M39`."""
     froms = [f.strip() for f in p.get("from", "").split(",") if f.strip()]
     if not froms:
         raise RuntimeError("dep source needs from=<module>")
@@ -480,7 +481,7 @@ def src_dep(p: dict[str, str], namespaces: dict[str, list[str]]) -> list[str]:
         values = [v for v in values if v in keep]
     if not values:
         raise RuntimeError("no version common to " + ", ".join(froms))
-    return values
+    return apply_regex(values, p.get("regex"))
 
 
 # ---------------------------------------------------------------------------

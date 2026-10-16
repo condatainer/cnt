@@ -8,7 +8,7 @@
 #PH:read_length:101,151,*
 
 #AUTOUPDATE:star_version:conda bioconda::star min=2.7.0b
-#AUTOUPDATE:gencode_version:dep from=grcm39/gtf/gencode
+#AUTOUPDATE:gencode_version:dep from=grcm39/gtf/gencode regex=^M(\d+)$
 
 #DEP:star/{star_version}
 #DEP:grcm39/genome/gencode

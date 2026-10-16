@@ -8,7 +8,7 @@
 #PH:kmer_length:31,*
 
 #AUTOUPDATE:salmon_version:conda bioconda::salmon min=1.9.0
-#AUTOUPDATE:gencode_version:dep from=grcm39/transcript/gencode
+#AUTOUPDATE:gencode_version:dep from=grcm39/transcript/gencode regex=^M(\d+)$
 
 #DEP:salmon/{salmon_version}
 #DEP:grcm39/genome/gencode
