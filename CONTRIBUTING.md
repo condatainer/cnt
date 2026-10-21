@@ -15,6 +15,11 @@ recipe. Do not add a recipe whose `#TARGET:` collides with an existing module.
 builds `code-server/{version}`, and `code-server` alone resolves to its newest version.
 `recipes/grch38/gtf-gencode-template` builds `grch38/gtf/gencode/{gencode_version}`.
 
+**A module name is at most 103 characters as a tag.** Each `/` counts as `--`, and
+a template counts the longest value of each placeholder. The registry holds the
+whole collection in one repository and files each module under tags of at most
+128 characters, the longest being the name plus 25 characters.
+
 **Declare every dependency the base image does not provide.** A tool a script
 build uses is a `#DEP:`, except the ones the base image ships: the shell and
 core utilities, `tar`, `gzip`, `pigz`, `bzip2`, `xz`, `unzip`, `curl`,and `wget`.

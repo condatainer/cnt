@@ -41,6 +41,11 @@ REDISTRIBUTE_VALUES = ("yes", "no")
 # ls-remote also takes git://, ssh:// and scp-style user@host:path.
 URL_SOURCES = {"listing", "json", "xml"}
 TOKEN_RE = re.compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
+# A published artifact's longest tag is its module with `/` written as `--`,
+# then `__eq-`, 12 hex characters, `__` and `noarch`. An OCI tag holds at most
+# 128 characters.
+TAG_LIMIT = 128
+TAG_SUFFIX_LEN = len("__eq-" + "0" * 12 + "__noarch")
 
 errors: list[str] = []
 warnings: list[str] = []
@@ -387,6 +392,15 @@ def check(path: Path, seen_targets: dict[str, str]) -> None:
         err(rel, f"module {module} already built by {seen_targets[module]}")
     else:
         seen_targets[module] = rel
+
+    # --- the module fits an OCI tag ---
+    # Each placeholder takes its longest listed value. An open-ended value has no
+    # bound, so a longer one is refused when the artifact is pushed.
+    longest = TOKEN_RE.sub(lambda m: max(pl_values.get(m.group(1)) or [""], key=len), module)
+    as_tag = longest.replace("/", "--")
+    if len(as_tag) + TAG_SUFFIX_LEN > TAG_LIMIT:
+        err(rel, f"module {longest} is {len(as_tag)} characters as a tag; "
+                 f"at most {TAG_LIMIT - TAG_SUFFIX_LEN} fit")
 
     # An app with no #REDISTRIBUTE: is deliberately not reported. Undeclared is
     # the safe state — a public registry refuses it — and the only way to clear
