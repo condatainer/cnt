@@ -158,6 +158,12 @@
     "type": "data",
     "url": "https://www.gencodegenes.org/mouse/"
   },
+  "ubuntu22/base": {
+    "description": "CondaTainer Ubuntu 22.04 base image",
+    "path": "recipes/ubuntu22/base.def",
+    "type": "base",
+    "url": "https://hub.docker.com/_/ubuntu"
+  },
   "ubuntu24/base": {
     "description": "CondaTainer Ubuntu 24.04 base image",
     "path": "recipes/ubuntu24/base.def",
