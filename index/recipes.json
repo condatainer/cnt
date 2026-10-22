@@ -11,6 +11,7 @@
     "url": "https://github.com/coder/code-server"
   },
   "grch38/genome/gencode": {
+    "arch": ["noarch"],
     "deps": ["samtools/1.24>=1.10"],
     "description": "GRCh38 primary-assembly genome FASTA with GENCODE sequence names",
     "path": "recipes/grch38/genome/gencode",
@@ -18,6 +19,7 @@
     "url": "https://www.gencodegenes.org/human/"
   },
   "grch38/gtf-gencode-template": {
+    "arch": ["noarch"],
     "description": "GENCODE {gencode_version} GRCh38 comprehensive primary-assembly annotation GTF",
     "is_template": true,
     "path": "recipes/grch38/gtf-gencode-template",
@@ -71,6 +73,7 @@
     "url": "https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf"
   },
   "grch38/transcript-gencode-template": {
+    "arch": ["noarch"],
     "description": "GENCODE {gencode_version} GRCh38 transcript sequences FASTA",
     "is_template": true,
     "path": "recipes/grch38/transcript-gencode-template",
@@ -82,6 +85,7 @@
     "url": "https://www.gencodegenes.org/human/"
   },
   "grcm39/genome/gencode": {
+    "arch": ["noarch"],
     "deps": ["samtools/1.24>=1.10"],
     "description": "GRCm39 primary-assembly genome FASTA with GENCODE sequence names",
     "path": "recipes/grcm39/genome/gencode",
@@ -89,6 +93,7 @@
     "url": "https://www.gencodegenes.org/mouse/"
   },
   "grcm39/gtf-gencode-template": {
+    "arch": ["noarch"],
     "description": "GENCODE M{gencode_version} GRCm39 comprehensive primary-assembly annotation GTF",
     "is_template": true,
     "path": "recipes/grcm39/gtf-gencode-template",
@@ -142,6 +147,7 @@
     "url": "https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf"
   },
   "grcm39/transcript-gencode-template": {
+    "arch": ["noarch"],
     "description": "GENCODE M{gencode_version} GRCm39 transcript sequences FASTA",
     "is_template": true,
     "path": "recipes/grcm39/transcript-gencode-template",
