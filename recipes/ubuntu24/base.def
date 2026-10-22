@@ -24,11 +24,11 @@ From: ubuntu:24.04
     # time: resource usage tracing
     apt-get update && apt-get install -y \
         ca-certificates \
-        curl wget aria2 rsync \
-        tar pigz unzip bzip2 xz-utils zstd lz4 \
+        curl wget aria2 rsync git openssh-client jq \
+        tar pigz unzip bzip2 lbzip2 xz-utils zstd lz4 p7zip-full file \
         e2fsprogs fuse2fs \
-        bash zsh fish bash-completion tmux tree time git \
-        htop less nano \
+        bash zsh fish bash-completion tmux tree time \
+        htop less nano procps \
         netcat-openbsd iproute2 dnsutils iputils-ping
 
     # Caches, recreated on demand by whoever is running.
