@@ -15,7 +15,7 @@
 cd "$CNT_PREFIX"
 
 echo "Decompressing the genome" >&2
-pigz -dc -p "${NCPUS:-4}" "$CNT_SRC_genome" > GRCm39.primary_assembly.genome.fa
+pigz -dc -p "${NCPU:-4}" "$CNT_SRC_genome" > GRCm39.primary_assembly.genome.fa
 
 echo "Indexing with samtools faidx" >&2
 samtools faidx GRCm39.primary_assembly.genome.fa

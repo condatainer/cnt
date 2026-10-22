@@ -15,4 +15,4 @@
 cd "$CNT_PREFIX"
 
 echo "Decompressing the transcripts" >&2
-pigz -dc -p "${NCPUS:-4}" "$CNT_SRC_transcripts" > "gencode.v{gencode_version}.transcripts.fa"
+pigz -dc -p "${NCPU:-4}" "$CNT_SRC_transcripts" > "gencode.v{gencode_version}.transcripts.fa"

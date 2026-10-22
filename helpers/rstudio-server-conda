@@ -42,7 +42,7 @@ ${_CNT_ENV_LINES}
 ${_MM_LINES}
 export PATH=$(printf %q "$PATH"):\$PATH
 export RSTUDIO_DATA_HOME="${CNT_HELPER_CWD}/.rstudio"
-export NCPUS=$NCPUS
+export NCPU=$NCPU
 ${_PROXY_LINES}
 /usr/lib/rstudio-server/bin/rsession "\$@"
 RSESSION

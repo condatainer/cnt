@@ -22,7 +22,7 @@
 
 echo "Building Salmon index for $CNT_NAME" >&2
 salmon index \
-    -p "$NCPUS" \
+    -p "$NCPU" \
     -t "$TRANSCRIPT_FASTA" \
     -k {kmer_length} \
     -i "$CNT_PREFIX" \

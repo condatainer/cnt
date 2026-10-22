@@ -13,4 +13,4 @@
 # The tarball bundles its own Node, so it runs on any base. --strip-components=1
 # drops the top folder, leaving bin/code-server under $CNT_PREFIX and on PATH.
 tar -xf "$CNT_SRC_pkg" -C "$CNT_PREFIX" --strip-components=1 --no-same-owner \
-    --use-compress-program="pigz -d -p ${NCPUS:-4}"
+    --use-compress-program="pigz -d -p ${NCPU:-4}"

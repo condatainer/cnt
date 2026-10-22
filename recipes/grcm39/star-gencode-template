@@ -24,7 +24,7 @@
 cd "$CNT_TMP"
 
 echo "Building the STAR index for $CNT_NAME" >&2
-STAR --runThreadN "$NCPUS" \
+STAR --runThreadN "$NCPU" \
     --runMode genomeGenerate \
     --genomeDir "$CNT_PREFIX" \
     --genomeFastaFiles "$GENOME_FASTA" \

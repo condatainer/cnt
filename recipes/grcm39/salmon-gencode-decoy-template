@@ -29,7 +29,7 @@ cut -f 1 "${GENOME_FASTA}.fai" > decoys.txt
 
 echo "Building Salmon index for $CNT_NAME" >&2
 salmon index \
-    -p "$NCPUS" \
+    -p "$NCPU" \
     -t gentrome.fa \
     -d decoys.txt \
     -k {kmer_length} \

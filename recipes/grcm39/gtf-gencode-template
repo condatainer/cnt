@@ -15,4 +15,4 @@
 cd "$CNT_PREFIX"
 
 echo "Decompressing the annotation" >&2
-pigz -dc -p "${NCPUS:-4}" "$CNT_SRC_gtf" > "gencode.vM{gencode_version}.primary_assembly.annotation.gtf"
+pigz -dc -p "${NCPU:-4}" "$CNT_SRC_gtf" > "gencode.vM{gencode_version}.primary_assembly.annotation.gtf"
