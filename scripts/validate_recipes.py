@@ -35,7 +35,7 @@ RESERVED_PH = {"prefix"}
 # What $CNT_SRC_<name> can be: it is an environment variable.
 SOURCE_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 SOURCE_ARCHES = ("amd64", "arm64")
-ARCH_VALUES = ("native", "noarch")
+ARCH_VALUES = ("amd64", "arm64", "noarch")
 REDISTRIBUTE_VALUES = ("yes", "no")
 # Fetched with urllib, so the scheme must be one it speaks. `git` is excluded:
 # ls-remote also takes git://, ssh:// and scp-style user@host:path.
@@ -333,9 +333,16 @@ def check(path: Path, seen_targets: dict[str, str]) -> None:
             if path.suffix == ".def":
                 err(rel, "#ARCH: on a .def — an os and a base are root "
                          "filesystems and are always architecture-specific")
-            elif value.lower() not in ARCH_VALUES:
-                err(rel, f"#ARCH: must be {' or '.join(ARCH_VALUES)}, "
-                         f"got: {value}")
+            else:
+                archs = [a for a in re.split(r"[\s,]+", value.lower()) if a]
+                if not archs or any(a not in ARCH_VALUES for a in archs):
+                    err(rel, "#ARCH: must be noarch, or amd64 and arm64, "
+                             f"got: {value}")
+                elif len(set(archs)) != len(archs):
+                    err(rel, f"#ARCH: lists an architecture twice: {value}")
+                elif "noarch" in archs and len(archs) > 1:
+                    err(rel, "#ARCH: noarch cannot be listed with "
+                             "architectures")
         elif key == "REDISTRIBUTE":
             if value.lower() not in REDISTRIBUTE_VALUES:
                 err(rel, f"#REDISTRIBUTE: must be "

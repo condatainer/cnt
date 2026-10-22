@@ -9,7 +9,8 @@ the recipe once it is local.
 Entry shapes:
 
     plain      "cellranger/9.0.1" -> {"path": ..., "type": "app",
-                                      "description": ..., "deps": [...]}
+                                      "description": ..., "deps": [...],
+                                      "arch": ["amd64"]}
     template   "grch38/star-gencode" -> {..., "is_template": true,
                                          "target_template": "...",
                                          "ph": {...}}
@@ -127,6 +128,7 @@ def parse_headers(path: Path) -> dict:
     ph: dict[str, list[str]] = {}
     target = description = url = type_ = ""
     deps: list[str] = []
+    arch: list[str] = []
 
     for line in read_header_block(path):
         if line.startswith("#PH:"):
@@ -146,6 +148,10 @@ def parse_headers(path: Path) -> dict:
             url = url or strip_note(line[len("#URL:"):])
         elif line.startswith("#TYPE:"):
             type_ = type_ or strip_note(line[len("#TYPE:"):]).lower()
+        elif line.startswith("#ARCH:"):
+            if not arch:
+                arch = re.split(r"[\s,]+", strip_note(line[len("#ARCH:"):]).lower())
+                arch = [a for a in arch if a]
         elif line.startswith("#DEP:"):
             dep = strip_note(line[len("#DEP:"):])
             if dep:
@@ -158,6 +164,7 @@ def parse_headers(path: Path) -> dict:
         "url": url,
         "type": type_,
         "deps": deps,
+        "arch": arch,
     }
 
 
@@ -207,6 +214,8 @@ def main() -> None:
             entry["url"] = h["url"]
         if h["deps"]:
             entry["deps"] = h["deps"]
+        if h["arch"]:
+            entry["arch"] = h["arch"]
         if h["ph"]:
             if not h["target"]:
                 print(f"WARNING: {name} has #PH: but no #TARGET:")
