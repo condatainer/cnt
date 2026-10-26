@@ -1,11 +1,14 @@
 {
-  "code-server": {
-    "path": "helpers/code-server"
-  },
-  "rstudio-server": {
-    "path": "helpers/rstudio-server"
-  },
-  "rstudio-server-conda": {
-    "path": "helpers/rstudio-server-conda"
+  "schema_version": 1,
+  "helpers": {
+    "code-server": {
+      "path": "helpers/code-server"
+    },
+    "rstudio-server": {
+      "path": "helpers/rstudio-server"
+    },
+    "rstudio-server-conda": {
+      "path": "helpers/rstudio-server-conda"
+    }
   }
 }

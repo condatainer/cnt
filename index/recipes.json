@@ -1,200 +1,203 @@
 {
-  "code-server-template": {
-    "description": "code-server {version}, open-source VS Code in the browser",
-    "is_template": true,
-    "path": "recipes/code-server-template",
-    "ph": {
-      "version": ["4.143.1", "4.141.1", "4.141.0", "4.140.0", "4.139.1", "4.138.0", "4.137.0", "4.136.2", "4.135.0", "4.134.0", "4.133.0", "4.132.0", "4.131.0", "4.130.0", "4.129.0", "4.128.0", "4.127.0", "4.126.0", "4.125.0", "4.124.2", "4.123.0", "4.122.1", "4.122.0", "4.121.0", "4.118.0", "4.117.0", "4.116.0", "4.115.0", "4.114.1", "4.114.0", "4.113.1", "4.113.0", "4.112.0", "4.111.0", "4.110.1", "4.110.0", "4.109.5", "4.109.2", "4.109.0", "4.108.2", "4.108.1", "4.108.0", "4.107.1", "4.107.0", "4.106.3", "4.106.2", "4.106.0", "4.105.1", "4.105.0", "4.104.3", "4.104.2", "4.104.1", "4.104.0", "4.103.2", "4.103.1", "4.103.0", "4.102.3", "4.102.2", "4.102.1", "4.102.0", "4.101.2", "4.101.1", "4.101.0", "4.100.3", "4.100.2", "4.100.1", "4.100.0"]
+  "schema_version": 1,
+  "recipes": {
+    "code-server-template": {
+      "description": "code-server {version}, open-source VS Code in the browser",
+      "is_template": true,
+      "path": "recipes/code-server-template",
+      "ph": {
+        "version": ["4.143.1", "4.141.1", "4.141.0", "4.140.0", "4.139.1", "4.138.0", "4.137.0", "4.136.2", "4.135.0", "4.134.0", "4.133.0", "4.132.0", "4.131.0", "4.130.0", "4.129.0", "4.128.0", "4.127.0", "4.126.0", "4.125.0", "4.124.2", "4.123.0", "4.122.1", "4.122.0", "4.121.0", "4.118.0", "4.117.0", "4.116.0", "4.115.0", "4.114.1", "4.114.0", "4.113.1", "4.113.0", "4.112.0", "4.111.0", "4.110.1", "4.110.0", "4.109.5", "4.109.2", "4.109.0", "4.108.2", "4.108.1", "4.108.0", "4.107.1", "4.107.0", "4.106.3", "4.106.2", "4.106.0", "4.105.1", "4.105.0", "4.104.3", "4.104.2", "4.104.1", "4.104.0", "4.103.2", "4.103.1", "4.103.0", "4.102.3", "4.102.2", "4.102.1", "4.102.0", "4.101.2", "4.101.1", "4.101.0", "4.100.3", "4.100.2", "4.100.1", "4.100.0"]
+      },
+      "target_template": "code-server/{version}",
+      "type": "app",
+      "url": "https://github.com/coder/code-server"
     },
-    "target_template": "code-server/{version}",
-    "type": "app",
-    "url": "https://github.com/coder/code-server"
-  },
-  "grch38/genome/gencode": {
-    "arch": ["noarch"],
-    "deps": ["samtools/1.24>=1.10"],
-    "description": "GRCh38 primary-assembly genome FASTA with GENCODE sequence names",
-    "path": "recipes/grch38/genome/gencode",
-    "type": "data",
-    "url": "https://www.gencodegenes.org/human/"
-  },
-  "grch38/gtf-gencode-template": {
-    "arch": ["noarch"],
-    "description": "GENCODE {gencode_version} GRCh38 comprehensive primary-assembly annotation GTF",
-    "is_template": true,
-    "path": "recipes/grch38/gtf-gencode-template",
-    "ph": {
-      "gencode_version": ["50", "49", "48", "47", "46", "45", "44", "43", "42", "41", "40", "39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26", "25", "24", "23", "22"]
+    "grch38/genome/gencode": {
+      "arch": ["noarch"],
+      "deps": ["samtools/1.24>=1.10"],
+      "description": "GRCh38 primary-assembly genome FASTA with GENCODE sequence names",
+      "path": "recipes/grch38/genome/gencode",
+      "type": "data",
+      "url": "https://www.gencodegenes.org/human/"
     },
-    "target_template": "grch38/gtf/gencode/{gencode_version}",
-    "type": "data",
-    "url": "https://www.gencodegenes.org/human/"
-  },
-  "grch38/salmon-gencode-decoy-template": {
-    "deps": ["salmon/{salmon_version}", "grch38/genome/gencode", "grch38/transcript/gencode/{gencode_version}"],
-    "description": "Salmon {salmon_version} decoy-aware index for GENCODE {gencode_version} GRCh38 (k-mer {kmer_length})",
-    "is_template": true,
-    "path": "recipes/grch38/salmon-gencode-decoy-template",
-    "ph": {
-      "gencode_version": ["50", "49", "48", "47", "46", "45", "44", "43", "42", "41", "40", "39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26", "25", "24", "23"],
-      "kmer_length": ["31", "*"],
-      "salmon_version": ["2.8.0", "2.7.0", "2.6.0", "2.5.1", "2.5.0", "2.4.1", "2.4.0", "2.3.4", "2.3.3", "2.3.2", "2.3.1", "2.3.0", "2.2.1", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0", "1.12.1", "1.12.0", "1.11.4", "1.10.3", "1.10.2", "1.10.1", "1.10.0", "1.9.0"]
+    "grch38/gtf-gencode-template": {
+      "arch": ["noarch"],
+      "description": "GENCODE {gencode_version} GRCh38 comprehensive primary-assembly annotation GTF",
+      "is_template": true,
+      "path": "recipes/grch38/gtf-gencode-template",
+      "ph": {
+        "gencode_version": ["50", "49", "48", "47", "46", "45", "44", "43", "42", "41", "40", "39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26", "25", "24", "23", "22"]
+      },
+      "target_template": "grch38/gtf/gencode/{gencode_version}",
+      "type": "data",
+      "url": "https://www.gencodegenes.org/human/"
     },
-    "target_template": "grch38/salmon/{salmon_version}/gencode{gencode_version}-decoy-k{kmer_length}",
-    "type": "data",
-    "url": "https://combine-lab.github.io/salmon/"
-  },
-  "grch38/salmon-gencode-template": {
-    "deps": ["salmon/{salmon_version}", "grch38/transcript/gencode/{gencode_version}"],
-    "description": "Salmon {salmon_version} transcriptome index for GENCODE {gencode_version} GRCh38 (k-mer {kmer_length})",
-    "is_template": true,
-    "path": "recipes/grch38/salmon-gencode-template",
-    "ph": {
-      "gencode_version": ["50", "49", "48", "47", "46", "45", "44", "43", "42", "41", "40", "39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26", "25", "24", "23"],
-      "kmer_length": ["31", "*"],
-      "salmon_version": ["2.8.0", "2.7.0", "2.6.0", "2.5.1", "2.5.0", "2.4.1", "2.4.0", "2.3.4", "2.3.3", "2.3.2", "2.3.1", "2.3.0", "2.2.1", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0", "1.12.1", "1.12.0", "1.11.4", "1.10.3", "1.10.2", "1.10.1", "1.10.0", "1.9.0"]
+    "grch38/salmon-gencode-decoy-template": {
+      "deps": ["salmon/{salmon_version}", "grch38/genome/gencode", "grch38/transcript/gencode/{gencode_version}"],
+      "description": "Salmon {salmon_version} decoy-aware index for GENCODE {gencode_version} GRCh38 (k-mer {kmer_length})",
+      "is_template": true,
+      "path": "recipes/grch38/salmon-gencode-decoy-template",
+      "ph": {
+        "gencode_version": ["50", "49", "48", "47", "46", "45", "44", "43", "42", "41", "40", "39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26", "25", "24", "23"],
+        "kmer_length": ["31", "*"],
+        "salmon_version": ["2.8.0", "2.7.0", "2.6.0", "2.5.1", "2.5.0", "2.4.1", "2.4.0", "2.3.4", "2.3.3", "2.3.2", "2.3.1", "2.3.0", "2.2.1", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0", "1.12.1", "1.12.0", "1.11.4", "1.10.3", "1.10.2", "1.10.1", "1.10.0", "1.9.0"]
+      },
+      "target_template": "grch38/salmon/{salmon_version}/gencode{gencode_version}-decoy-k{kmer_length}",
+      "type": "data",
+      "url": "https://combine-lab.github.io/salmon/"
     },
-    "target_template": "grch38/salmon/{salmon_version}/gencode{gencode_version}-k{kmer_length}",
-    "type": "data",
-    "url": "https://combine-lab.github.io/salmon/"
-  },
-  "grch38/star-gencode-template": {
-    "deps": ["star/{star_version}", "grch38/genome/gencode", "grch38/gtf/gencode/{gencode_version}"],
-    "description": "STAR {star_version} index of GRCh38 with GENCODE {gencode_version} annotation, read length {read_length}",
-    "is_template": true,
-    "path": "recipes/grch38/star-gencode-template",
-    "ph": {
-      "gencode_version": ["50", "49", "48", "47", "46", "45", "44", "43", "42", "41", "40", "39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26", "25", "24", "23", "22"],
-      "read_length": ["151", "101", "*"],
-      "star_version": ["2.7.11b", "2.7.11a", "2.7.10b", "2.7.10a", "2.7.9a", "2.7.8a", "2.7.7a", "2.7.6a", "2.7.5c", "2.7.5b", "2.7.5a", "2.7.4a", "2.7.3a", "2.7.2c", "2.7.2b", "2.7.2a", "2.7.1a", "2.7.0f", "2.7.0e", "2.7.0d", "2.7.0b"]
+    "grch38/salmon-gencode-template": {
+      "deps": ["salmon/{salmon_version}", "grch38/transcript/gencode/{gencode_version}"],
+      "description": "Salmon {salmon_version} transcriptome index for GENCODE {gencode_version} GRCh38 (k-mer {kmer_length})",
+      "is_template": true,
+      "path": "recipes/grch38/salmon-gencode-template",
+      "ph": {
+        "gencode_version": ["50", "49", "48", "47", "46", "45", "44", "43", "42", "41", "40", "39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26", "25", "24", "23"],
+        "kmer_length": ["31", "*"],
+        "salmon_version": ["2.8.0", "2.7.0", "2.6.0", "2.5.1", "2.5.0", "2.4.1", "2.4.0", "2.3.4", "2.3.3", "2.3.2", "2.3.1", "2.3.0", "2.2.1", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0", "1.12.1", "1.12.0", "1.11.4", "1.10.3", "1.10.2", "1.10.1", "1.10.0", "1.9.0"]
+      },
+      "target_template": "grch38/salmon/{salmon_version}/gencode{gencode_version}-k{kmer_length}",
+      "type": "data",
+      "url": "https://combine-lab.github.io/salmon/"
     },
-    "target_template": "grch38/star/{star_version}/gencode{gencode_version}-{read_length}",
-    "type": "data",
-    "url": "https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf"
-  },
-  "grch38/transcript-gencode-template": {
-    "arch": ["noarch"],
-    "description": "GENCODE {gencode_version} GRCh38 transcript sequences FASTA",
-    "is_template": true,
-    "path": "recipes/grch38/transcript-gencode-template",
-    "ph": {
-      "gencode_version": ["50", "49", "48", "47", "46", "45", "44", "43", "42", "41", "40", "39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26", "25", "24", "23"]
+    "grch38/star-gencode-template": {
+      "deps": ["star/{star_version}", "grch38/genome/gencode", "grch38/gtf/gencode/{gencode_version}"],
+      "description": "STAR {star_version} index of GRCh38 with GENCODE {gencode_version} annotation, read length {read_length}",
+      "is_template": true,
+      "path": "recipes/grch38/star-gencode-template",
+      "ph": {
+        "gencode_version": ["50", "49", "48", "47", "46", "45", "44", "43", "42", "41", "40", "39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26", "25", "24", "23", "22"],
+        "read_length": ["151", "101", "*"],
+        "star_version": ["2.7.11b", "2.7.11a", "2.7.10b", "2.7.10a", "2.7.9a", "2.7.8a", "2.7.7a", "2.7.6a", "2.7.5c", "2.7.5b", "2.7.5a", "2.7.4a", "2.7.3a", "2.7.2c", "2.7.2b", "2.7.2a", "2.7.1a", "2.7.0f", "2.7.0e", "2.7.0d", "2.7.0b"]
+      },
+      "target_template": "grch38/star/{star_version}/gencode{gencode_version}-{read_length}",
+      "type": "data",
+      "url": "https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf"
     },
-    "target_template": "grch38/transcript/gencode/{gencode_version}",
-    "type": "data",
-    "url": "https://www.gencodegenes.org/human/"
-  },
-  "grcm39/genome/gencode": {
-    "arch": ["noarch"],
-    "deps": ["samtools/1.24>=1.10"],
-    "description": "GRCm39 primary-assembly genome FASTA with GENCODE sequence names",
-    "path": "recipes/grcm39/genome/gencode",
-    "type": "data",
-    "url": "https://www.gencodegenes.org/mouse/"
-  },
-  "grcm39/gtf-gencode-template": {
-    "arch": ["noarch"],
-    "description": "GENCODE M{gencode_version} GRCm39 comprehensive primary-assembly annotation GTF",
-    "is_template": true,
-    "path": "recipes/grcm39/gtf-gencode-template",
-    "ph": {
-      "gencode_version": ["39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26"]
+    "grch38/transcript-gencode-template": {
+      "arch": ["noarch"],
+      "description": "GENCODE {gencode_version} GRCh38 transcript sequences FASTA",
+      "is_template": true,
+      "path": "recipes/grch38/transcript-gencode-template",
+      "ph": {
+        "gencode_version": ["50", "49", "48", "47", "46", "45", "44", "43", "42", "41", "40", "39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26", "25", "24", "23"]
+      },
+      "target_template": "grch38/transcript/gencode/{gencode_version}",
+      "type": "data",
+      "url": "https://www.gencodegenes.org/human/"
     },
-    "target_template": "grcm39/gtf/gencode/M{gencode_version}",
-    "type": "data",
-    "url": "https://www.gencodegenes.org/mouse/"
-  },
-  "grcm39/salmon-gencode-decoy-template": {
-    "deps": ["salmon/{salmon_version}", "grcm39/genome/gencode", "grcm39/transcript/gencode/M{gencode_version}"],
-    "description": "Salmon {salmon_version} decoy-aware index for GENCODE M{gencode_version} GRCm39 (k-mer {kmer_length})",
-    "is_template": true,
-    "path": "recipes/grcm39/salmon-gencode-decoy-template",
-    "ph": {
-      "gencode_version": ["39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26"],
-      "kmer_length": ["31", "*"],
-      "salmon_version": ["2.8.0", "2.7.0", "2.6.0", "2.5.1", "2.5.0", "2.4.1", "2.4.0", "2.3.4", "2.3.3", "2.3.2", "2.3.1", "2.3.0", "2.2.1", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0", "1.12.1", "1.12.0", "1.11.4", "1.10.3", "1.10.2", "1.10.1", "1.10.0", "1.9.0"]
+    "grcm39/genome/gencode": {
+      "arch": ["noarch"],
+      "deps": ["samtools/1.24>=1.10"],
+      "description": "GRCm39 primary-assembly genome FASTA with GENCODE sequence names",
+      "path": "recipes/grcm39/genome/gencode",
+      "type": "data",
+      "url": "https://www.gencodegenes.org/mouse/"
     },
-    "target_template": "grcm39/salmon/{salmon_version}/gencodeM{gencode_version}-decoy-k{kmer_length}",
-    "type": "data",
-    "url": "https://combine-lab.github.io/salmon/"
-  },
-  "grcm39/salmon-gencode-template": {
-    "deps": ["salmon/{salmon_version}", "grcm39/transcript/gencode/M{gencode_version}"],
-    "description": "Salmon {salmon_version} transcriptome index for GENCODE M{gencode_version} GRCm39 (k-mer {kmer_length})",
-    "is_template": true,
-    "path": "recipes/grcm39/salmon-gencode-template",
-    "ph": {
-      "gencode_version": ["39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26"],
-      "kmer_length": ["31", "*"],
-      "salmon_version": ["2.8.0", "2.7.0", "2.6.0", "2.5.1", "2.5.0", "2.4.1", "2.4.0", "2.3.4", "2.3.3", "2.3.2", "2.3.1", "2.3.0", "2.2.1", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0", "1.12.1", "1.12.0", "1.11.4", "1.10.3", "1.10.2", "1.10.1", "1.10.0", "1.9.0"]
+    "grcm39/gtf-gencode-template": {
+      "arch": ["noarch"],
+      "description": "GENCODE M{gencode_version} GRCm39 comprehensive primary-assembly annotation GTF",
+      "is_template": true,
+      "path": "recipes/grcm39/gtf-gencode-template",
+      "ph": {
+        "gencode_version": ["39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26"]
+      },
+      "target_template": "grcm39/gtf/gencode/M{gencode_version}",
+      "type": "data",
+      "url": "https://www.gencodegenes.org/mouse/"
     },
-    "target_template": "grcm39/salmon/{salmon_version}/gencodeM{gencode_version}-k{kmer_length}",
-    "type": "data",
-    "url": "https://combine-lab.github.io/salmon/"
-  },
-  "grcm39/star-gencode-template": {
-    "deps": ["star/{star_version}", "grcm39/genome/gencode", "grcm39/gtf/gencode/M{gencode_version}"],
-    "description": "STAR {star_version} index of GRCm39 with GENCODE M{gencode_version} annotation, read length {read_length}",
-    "is_template": true,
-    "path": "recipes/grcm39/star-gencode-template",
-    "ph": {
-      "gencode_version": ["39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26"],
-      "read_length": ["151", "101", "*"],
-      "star_version": ["2.7.11b", "2.7.11a", "2.7.10b", "2.7.10a", "2.7.9a", "2.7.8a", "2.7.7a", "2.7.6a", "2.7.5c", "2.7.5b", "2.7.5a", "2.7.4a", "2.7.3a", "2.7.2c", "2.7.2b", "2.7.2a", "2.7.1a", "2.7.0f", "2.7.0e", "2.7.0d", "2.7.0b"]
+    "grcm39/salmon-gencode-decoy-template": {
+      "deps": ["salmon/{salmon_version}", "grcm39/genome/gencode", "grcm39/transcript/gencode/M{gencode_version}"],
+      "description": "Salmon {salmon_version} decoy-aware index for GENCODE M{gencode_version} GRCm39 (k-mer {kmer_length})",
+      "is_template": true,
+      "path": "recipes/grcm39/salmon-gencode-decoy-template",
+      "ph": {
+        "gencode_version": ["39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26"],
+        "kmer_length": ["31", "*"],
+        "salmon_version": ["2.8.0", "2.7.0", "2.6.0", "2.5.1", "2.5.0", "2.4.1", "2.4.0", "2.3.4", "2.3.3", "2.3.2", "2.3.1", "2.3.0", "2.2.1", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0", "1.12.1", "1.12.0", "1.11.4", "1.10.3", "1.10.2", "1.10.1", "1.10.0", "1.9.0"]
+      },
+      "target_template": "grcm39/salmon/{salmon_version}/gencodeM{gencode_version}-decoy-k{kmer_length}",
+      "type": "data",
+      "url": "https://combine-lab.github.io/salmon/"
     },
-    "target_template": "grcm39/star/{star_version}/gencodeM{gencode_version}-{read_length}",
-    "type": "data",
-    "url": "https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf"
-  },
-  "grcm39/transcript-gencode-template": {
-    "arch": ["noarch"],
-    "description": "GENCODE M{gencode_version} GRCm39 transcript sequences FASTA",
-    "is_template": true,
-    "path": "recipes/grcm39/transcript-gencode-template",
-    "ph": {
-      "gencode_version": ["39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26"]
+    "grcm39/salmon-gencode-template": {
+      "deps": ["salmon/{salmon_version}", "grcm39/transcript/gencode/M{gencode_version}"],
+      "description": "Salmon {salmon_version} transcriptome index for GENCODE M{gencode_version} GRCm39 (k-mer {kmer_length})",
+      "is_template": true,
+      "path": "recipes/grcm39/salmon-gencode-template",
+      "ph": {
+        "gencode_version": ["39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26"],
+        "kmer_length": ["31", "*"],
+        "salmon_version": ["2.8.0", "2.7.0", "2.6.0", "2.5.1", "2.5.0", "2.4.1", "2.4.0", "2.3.4", "2.3.3", "2.3.2", "2.3.1", "2.3.0", "2.2.1", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0", "1.12.1", "1.12.0", "1.11.4", "1.10.3", "1.10.2", "1.10.1", "1.10.0", "1.9.0"]
+      },
+      "target_template": "grcm39/salmon/{salmon_version}/gencodeM{gencode_version}-k{kmer_length}",
+      "type": "data",
+      "url": "https://combine-lab.github.io/salmon/"
     },
-    "target_template": "grcm39/transcript/gencode/M{gencode_version}",
-    "type": "data",
-    "url": "https://www.gencodegenes.org/mouse/"
-  },
-  "ubuntu22/base": {
-    "description": "CondaTainer Ubuntu 22.04 base image",
-    "path": "recipes/ubuntu22/base.def",
-    "type": "base",
-    "url": "https://hub.docker.com/_/ubuntu"
-  },
-  "ubuntu24/base": {
-    "description": "CondaTainer Ubuntu 24.04 base image",
-    "path": "recipes/ubuntu24/base.def",
-    "type": "base",
-    "url": "https://hub.docker.com/_/ubuntu"
-  },
-  "ubuntu24/r-build-essential": {
-    "description": "Ubuntu 24.04 compilers, build tools and system libraries for R",
-    "path": "recipes/ubuntu24/r-build-essential.def",
-    "type": "os"
-  },
-  "ubuntu24/r-template": {
-    "description": "R {version} on Ubuntu 24.04 (noble)",
-    "is_template": true,
-    "path": "recipes/ubuntu24/r-template.def",
-    "ph": {
-      "version": ["4.6.1", "4.6.0", "4.5.3", "4.5.2", "4.5.1", "4.5.0", "4.4.3", "4.4.2", "4.4.1", "4.4.0", "4.3.3", "4.3.2", "4.3.1", "4.3.0", "4.2.3", "4.2.2", "4.2.1", "4.2.0", "4.1.3", "4.1.2", "4.1.1", "4.1.0", "4.0.5", "4.0.4", "4.0.3", "4.0.2", "4.0.1", "4.0.0", "3.6.3", "3.6.2", "3.6.1", "3.6.0", "3.5.3", "3.4.4", "3.3.3", "3.2.5", "3.1.3"]
+    "grcm39/star-gencode-template": {
+      "deps": ["star/{star_version}", "grcm39/genome/gencode", "grcm39/gtf/gencode/M{gencode_version}"],
+      "description": "STAR {star_version} index of GRCm39 with GENCODE M{gencode_version} annotation, read length {read_length}",
+      "is_template": true,
+      "path": "recipes/grcm39/star-gencode-template",
+      "ph": {
+        "gencode_version": ["39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26"],
+        "read_length": ["151", "101", "*"],
+        "star_version": ["2.7.11b", "2.7.11a", "2.7.10b", "2.7.10a", "2.7.9a", "2.7.8a", "2.7.7a", "2.7.6a", "2.7.5c", "2.7.5b", "2.7.5a", "2.7.4a", "2.7.3a", "2.7.2c", "2.7.2b", "2.7.2a", "2.7.1a", "2.7.0f", "2.7.0e", "2.7.0d", "2.7.0b"]
+      },
+      "target_template": "grcm39/star/{star_version}/gencodeM{gencode_version}-{read_length}",
+      "type": "data",
+      "url": "https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf"
     },
-    "target_template": "ubuntu24/r/{version}",
-    "type": "os",
-    "url": "https://hub.docker.com/r/posit/r-base"
-  },
-  "ubuntu24/rstudio-server-template": {
-    "description": "RStudio Server {version} on Ubuntu 24.04",
-    "is_template": true,
-    "path": "recipes/ubuntu24/rstudio-server-template.def",
-    "ph": {
-      "version": ["2026.10.0-233", "2026.09.0-174", "2026.06.0-242"]
+    "grcm39/transcript-gencode-template": {
+      "arch": ["noarch"],
+      "description": "GENCODE M{gencode_version} GRCm39 transcript sequences FASTA",
+      "is_template": true,
+      "path": "recipes/grcm39/transcript-gencode-template",
+      "ph": {
+        "gencode_version": ["39", "38", "37", "36", "35", "34", "33", "32", "31", "30", "29", "28", "27", "26"]
+      },
+      "target_template": "grcm39/transcript/gencode/M{gencode_version}",
+      "type": "data",
+      "url": "https://www.gencodegenes.org/mouse/"
     },
-    "target_template": "ubuntu24/rstudio-server/{version}",
-    "type": "os",
-    "url": "https://posit.co/products/open-source/rstudio-server/"
+    "ubuntu22/base": {
+      "description": "CondaTainer Ubuntu 22.04 base image",
+      "path": "recipes/ubuntu22/base.def",
+      "type": "base",
+      "url": "https://hub.docker.com/_/ubuntu"
+    },
+    "ubuntu24/base": {
+      "description": "CondaTainer Ubuntu 24.04 base image",
+      "path": "recipes/ubuntu24/base.def",
+      "type": "base",
+      "url": "https://hub.docker.com/_/ubuntu"
+    },
+    "ubuntu24/r-build-essential": {
+      "description": "Ubuntu 24.04 compilers, build tools and system libraries for R",
+      "path": "recipes/ubuntu24/r-build-essential.def",
+      "type": "os"
+    },
+    "ubuntu24/r-template": {
+      "description": "R {version} on Ubuntu 24.04 (noble)",
+      "is_template": true,
+      "path": "recipes/ubuntu24/r-template.def",
+      "ph": {
+        "version": ["4.6.1", "4.6.0", "4.5.3", "4.5.2", "4.5.1", "4.5.0", "4.4.3", "4.4.2", "4.4.1", "4.4.0", "4.3.3", "4.3.2", "4.3.1", "4.3.0", "4.2.3", "4.2.2", "4.2.1", "4.2.0", "4.1.3", "4.1.2", "4.1.1", "4.1.0", "4.0.5", "4.0.4", "4.0.3", "4.0.2", "4.0.1", "4.0.0", "3.6.3", "3.6.2", "3.6.1", "3.6.0", "3.5.3", "3.4.4", "3.3.3", "3.2.5", "3.1.3"]
+      },
+      "target_template": "ubuntu24/r/{version}",
+      "type": "os",
+      "url": "https://hub.docker.com/r/posit/r-base"
+    },
+    "ubuntu24/rstudio-server-template": {
+      "description": "RStudio Server {version} on Ubuntu 24.04",
+      "is_template": true,
+      "path": "recipes/ubuntu24/rstudio-server-template.def",
+      "ph": {
+        "version": ["2026.10.0-233", "2026.09.0-174", "2026.06.0-242"]
+      },
+      "target_template": "ubuntu24/rstudio-server/{version}",
+      "type": "os",
+      "url": "https://posit.co/products/open-source/rstudio-server/"
+    }
   }
 }
