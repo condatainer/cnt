@@ -15,10 +15,9 @@
 
 #ENV:SALMON_INDEX_DIR={prefix}   ## Salmon {salmon_version} transcriptome index for GENCODE M{gencode_version} GRCm39 (k-mer {kmer_length})
 
-#SBATCH --cpus-per-task=16
-#SBATCH --mem=24G
-#SBATCH --time=2:00:00
-#SBATCH --job-name=salmon-index
+#NCPU: 16
+#MEM: 24G
+#TIME: 2:00:00
 
 echo "Building Salmon index for $CNT_BUILD_NAME" >&2
 salmon index \

@@ -5,7 +5,7 @@
 #MEM: 16G
 #TIME: 12:00:00
 
-#REQUIRED_OVERLAYS: code-server
+#DEP: code-server
 
 #PARAM: PASSWORD=? --password "Password for authentication (empty for no auth)"
 

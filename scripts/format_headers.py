@@ -9,13 +9,13 @@ A recipe:
     maintenance       #AUTOUPDATE:
     what it needs     #DEP: #SOURCE: #INPUT:
     what it gives     #ENV:
-    how it is built   #SBATCH #PBS #BSUB
+    how it is built   #NCPU: #MEM: #TIME: #GPU:
 
 A helper:
 
     what it is        #DESC:
     session defaults  #NCPU: #MEM: #TIME: #GPU: #SINGLETON:
-    what it loads     #REQUIRED_OVERLAYS: #IMG_PACKAGES: #POST_INSTALL_CMD: #BIND:
+    what it loads     #DEP: #ENV_PACKAGES: #ENV_POST_INSTALL: #BIND:
     parameters        each #PARAM:, then its #VALUE: and #AUTOUPDATE:
 
 Blank lines separate the groups. Order within a group is left alone — a `#PH:`
@@ -44,13 +44,13 @@ GROUPS = [
     ["AUTOUPDATE"],
     ["DEP", "SOURCE", "INPUT"],
     ["ENV"],
-    ["SBATCH", "PBS", "BSUB"],
+    ["NCPU", "MEM", "TIME", "GPU"],
 ]
 
 HELPER_GROUPS = [
     ["DESC"],
     ["NCPU", "MEM", "TIME", "GPU", "SINGLETON"],
-    ["REQUIRED_OVERLAYS", "IMG_PACKAGES", "POST_INSTALL_CMD", "BIND"],
+    ["DEP", "ENV_PACKAGES", "ENV_POST_INSTALL", "BIND"],
 ]
 # The headers that describe one parameter, in the order they are written.
 PARAM_HEADERS = ["PARAM", "VALUE", "AUTOUPDATE"]

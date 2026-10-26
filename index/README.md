@@ -9,6 +9,9 @@ Each file is an object: `schema_version`, then the entries under `recipes`
 reader skips a key that is not a module. A client refuses a version it does not
 read.
 
+A helper entry has `path` and `sha256`, and `description` when the script has a `#DESC:`.
+The hash lets a client tell whether an added copy is current without downloading it.
+
 To see what a change produces:
 
 ```bash

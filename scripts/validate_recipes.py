@@ -29,6 +29,7 @@ SKIP_NAMES = {"README.md"}
 KNOWN_HEADERS = {
     "DESC", "URL", "DEP", "ENV", "TYPE", "ARCH", "PH", "TARGET",
     "INPUT", "SOURCE", "LICENSE", "REDISTRIBUTE", "AUTOUPDATE",
+    "NCPU", "MEM", "TIME", "GPU",
 }
 SCHEDULER_HEADERS = ("#SBATCH", "#PBS", "#BSUB")
 RESERVED_PH = {"prefix"}
@@ -236,7 +237,6 @@ def check(path: Path, seen_targets: dict[str, str]) -> None:
     pl_open: dict[str, bool] = {}
     pl_sep: dict[str, str] = {}
     pl_values: dict[str, list[str]] = {}
-    schedulers: set[str] = set()
     deps: list[str] = []
     updates: list[tuple[str, str, dict[str, str]]] = []
     sources: list[tuple[str, str, str]] = []    # (name, arch or "", url or "ask:<prompt>")
@@ -244,7 +244,8 @@ def check(path: Path, seen_targets: dict[str, str]) -> None:
     for line in headers:
         key = header_key(line)
         if f"#{key}" in SCHEDULER_HEADERS:
-            schedulers.add(key)
+            err(rel, f"#{key} is a scheduler directive — a recipe asks for resources "
+                     "with #NCPU:, #MEM:, #TIME: and #GPU:")
             continue
         if key not in KNOWN_HEADERS:
             err(rel, f"unknown header #{key}:")
@@ -421,14 +422,14 @@ def check(path: Path, seen_targets: dict[str, str]) -> None:
     # and nobody notices.
     check_updates(rel, updates, path, deps, pl_names, pl_sep, pl_values)
 
-    # --- one scheduler per recipe ---
-    # Directives are translated across schedulers, so a recipe declares its
-    # resources once. Two families means two answers with nothing to say which
-    # is authoritative, and the recipe silently gets different resources
-    # depending on where it is built.
-    if len(schedulers) > 1:
-        err(rel, "mixes " + " and ".join(f"#{s}" for s in sorted(schedulers)) +
-                 " — declare resources for one scheduler; they are translated")
+    # --- a script recipe writes its payload to $CNT_BUILD_PREFIX ---
+    # Without it the payload is empty, and the project scan reads the recipe as an
+    # analysis script and pins its build dependencies. A .def has no such variable.
+    if path.suffix != ".def":
+        code = "\n".join(l for l in body if not l.lstrip().startswith("#"))
+        if "$CNT_BUILD_PREFIX" not in code and "${CNT_BUILD_PREFIX}" not in code:
+            err(rel, "never expands $CNT_BUILD_PREFIX — a script recipe writes its "
+                     "payload there")
 
     # --- headers below the block are inert and probably a mistake ---
     for line in body:

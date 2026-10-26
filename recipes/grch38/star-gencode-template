@@ -16,10 +16,9 @@
 
 #ENV:STAR_INDEX_DIR={prefix}   ## STAR {star_version} index of GRCh38 with GENCODE {gencode_version} annotation, read length {read_length}
 
-#SBATCH --cpus-per-task=16
-#SBATCH --mem=42G
-#SBATCH --time=2:00:00
-#SBATCH --job-name=star-index
+#NCPU: 16
+#MEM: 42G
+#TIME: 2:00:00
 
 cd "$CNT_BUILD_TMPDIR"
 
