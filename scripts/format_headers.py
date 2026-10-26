@@ -14,7 +14,7 @@ A recipe:
 A helper:
 
     what it is        #DESC:
-    session defaults  #NCPUS: #MEM: #TIME: #GPU: #SINGLETON:
+    session defaults  #NCPU: #MEM: #TIME: #GPU: #SINGLETON:
     what it loads     #REQUIRED_OVERLAYS: #IMG_PACKAGES: #POST_INSTALL_CMD: #BIND:
     parameters        each #PARAM:, then its #VALUE: and #AUTOUPDATE:
 
@@ -49,7 +49,7 @@ GROUPS = [
 
 HELPER_GROUPS = [
     ["DESC"],
-    ["NCPUS", "MEM", "TIME", "GPU", "SINGLETON"],
+    ["NCPU", "MEM", "TIME", "GPU", "SINGLETON"],
     ["REQUIRED_OVERLAYS", "IMG_PACKAGES", "POST_INSTALL_CMD", "BIND"],
 ]
 # The headers that describe one parameter, in the order they are written.

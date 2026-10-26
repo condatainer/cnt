@@ -11,6 +11,6 @@
 #SOURCE:pkg arm64 https://github.com/coder/code-server/releases/download/v{version}/code-server-{version}-linux-arm64.tar.gz
 
 # The tarball bundles its own Node, so it runs on any base. --strip-components=1
-# drops the top folder, leaving bin/code-server under $CNT_PREFIX and on PATH.
-tar -xf "$CNT_SRC_pkg" -C "$CNT_PREFIX" --strip-components=1 --no-same-owner \
+# drops the top folder, leaving bin/code-server under $CNT_BUILD_PREFIX and on PATH.
+tar -xf "$CNT_BUILD_SRC_pkg" -C "$CNT_BUILD_PREFIX" --strip-components=1 --no-same-owner \
     --use-compress-program="pigz -d -p ${NCPU:-4}"

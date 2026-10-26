@@ -1,5 +1,5 @@
 {
-  "schema": 1,
+  "schema_version": 1,
   "source": "https://github.com/condatainer/cnt",
   "default_distro": "ubuntu24",
   "oci": {

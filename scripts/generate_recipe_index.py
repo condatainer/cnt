@@ -6,6 +6,8 @@ is, what type it is, what it depends on, what it is, and how to expand a
 template. Everything else (#ENV:, #INPUT:, scheduler directives) is read from
 the recipe once it is local.
 
+The file is an object: `schema_version`, then the entries under `recipes`.
+
 Entry shapes:
 
     plain      "cellranger/9.0.1" -> {"path": ..., "type": "app",
@@ -32,6 +34,7 @@ RECIPES_DIR = ROOT / "recipes"
 OUT_DIR = ROOT / "index"
 OUT_FILE = OUT_DIR / "recipes.json"
 
+INDEX_SCHEMA_VERSION = 1
 SKIP_SUFFIXES = (".py", ".md")
 SKIP_NAMES = {"README.md"}
 
@@ -226,7 +229,7 @@ def main() -> None:
         index[name] = entry
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    text = format_json(index) + "\n"
+    text = f'{{\n  "schema_version": {INDEX_SCHEMA_VERSION},\n  "recipes": {format_json(index, 1)}\n}}\n'
     written = write_index(OUT_FILE, text)
 
     templates = sum(1 for e in index.values() if e.get("is_template"))

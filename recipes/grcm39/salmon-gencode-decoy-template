@@ -21,17 +21,17 @@
 #SBATCH --time=2:00:00
 #SBATCH --job-name=salmon-index
 
-cd "$CNT_TMP"
+cd "$CNT_BUILD_TMPDIR"
 
 echo "Building the gentrome and decoys" >&2
 cat "$TRANSCRIPT_FASTA" "$GENOME_FASTA" > gentrome.fa
 cut -f 1 "${GENOME_FASTA}.fai" > decoys.txt
 
-echo "Building Salmon index for $CNT_NAME" >&2
+echo "Building Salmon index for $CNT_BUILD_NAME" >&2
 salmon index \
     -p "$NCPU" \
     -t gentrome.fa \
     -d decoys.txt \
     -k {kmer_length} \
-    -i "$CNT_PREFIX" \
+    -i "$CNT_BUILD_PREFIX" \
     --gencode

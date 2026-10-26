@@ -12,7 +12,7 @@
 
 #ENV:TRANSCRIPT_FASTA={prefix}/gencode.v{gencode_version}.transcripts.fa   ## GENCODE {gencode_version} GRCh38 transcript sequences FASTA
 
-cd "$CNT_PREFIX"
+cd "$CNT_BUILD_PREFIX"
 
 echo "Decompressing the transcripts" >&2
-pigz -dc -p "${NCPU:-4}" "$CNT_SRC_transcripts" > "gencode.v{gencode_version}.transcripts.fa"
+pigz -dc -p "${NCPU:-4}" "$CNT_BUILD_SRC_transcripts" > "gencode.v{gencode_version}.transcripts.fa"

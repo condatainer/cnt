@@ -20,10 +20,10 @@
 #SBATCH --time=2:00:00
 #SBATCH --job-name=salmon-index
 
-echo "Building Salmon index for $CNT_NAME" >&2
+echo "Building Salmon index for $CNT_BUILD_NAME" >&2
 salmon index \
     -p "$NCPU" \
     -t "$TRANSCRIPT_FASTA" \
     -k {kmer_length} \
-    -i "$CNT_PREFIX" \
+    -i "$CNT_BUILD_PREFIX" \
     --gencode

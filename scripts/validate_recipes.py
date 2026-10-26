@@ -32,7 +32,7 @@ KNOWN_HEADERS = {
 }
 SCHEDULER_HEADERS = ("#SBATCH", "#PBS", "#BSUB")
 RESERVED_PH = {"prefix"}
-# What $CNT_SRC_<name> can be: it is an environment variable.
+# What $CNT_BUILD_SRC_<name> can be: it is an environment variable.
 SOURCE_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 SOURCE_ARCHES = ("amd64", "arm64")
 ARCH_VALUES = ("amd64", "arm64", "noarch")

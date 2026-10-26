@@ -4,9 +4,10 @@
 and committed by it. A hand edit is overwritten by the next run, and a pull
 request that touches them is rejected.
 
-They are not comments in the JSON because the files are a flat
-`{module: entry}` map, and a key that is not a module would have to be skipped
-by every reader.
+Each file is an object: `schema_version`, then the entries under `recipes`
+(or `helpers`). The version sits beside the entries, not among them, so no
+reader skips a key that is not a module. A client refuses a version it does not
+read.
 
 To see what a change produces:
 

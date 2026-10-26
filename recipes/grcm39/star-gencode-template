@@ -21,13 +21,13 @@
 #SBATCH --time=2:00:00
 #SBATCH --job-name=star-index
 
-cd "$CNT_TMP"
+cd "$CNT_BUILD_TMPDIR"
 
-echo "Building the STAR index for $CNT_NAME" >&2
+echo "Building the STAR index for $CNT_BUILD_NAME" >&2
 STAR --runThreadN "$NCPU" \
     --runMode genomeGenerate \
-    --genomeDir "$CNT_PREFIX" \
+    --genomeDir "$CNT_BUILD_PREFIX" \
     --genomeFastaFiles "$GENOME_FASTA" \
     --sjdbGTFfile "$ANNOTATION_GTF" \
     --sjdbOverhang $(({read_length} - 1)) \
-    --outFileNamePrefix "$CNT_TMP/"
+    --outFileNamePrefix "$CNT_BUILD_TMPDIR/"

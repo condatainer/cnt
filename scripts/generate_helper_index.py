@@ -2,11 +2,11 @@
 """Scan `helpers/` and write `index/helpers.json` plus a gzip companion.
 
 A helper is not a buildable module: no kind, no deps, no template expansion.
-Its headers (#PARAM:, #IMG_PACKAGES:, #REQUIRED_OVERLAYS:, #BIND:, #NCPUS: ...)
+Its headers (#PARAM:, #IMG_PACKAGES:, #REQUIRED_OVERLAYS:, #BIND:, #NCPU: ...)
 are read at run time from the downloaded script, so this index is a directory
 listing and nothing is parsed here.
 
-    {"jupyterlab": {"path": "helpers/jupyterlab"}}
+    {"schema_version": 1, "helpers": {"jupyterlab": {"path": "helpers/jupyterlab"}}}
 """
 import json
 import sys
@@ -21,6 +21,7 @@ HELPERS_DIR = ROOT / "helpers"
 OUT_DIR = ROOT / "index"
 OUT_FILE = OUT_DIR / "helpers.json"
 
+INDEX_SCHEMA_VERSION = 1
 SKIP_NAMES = {"README.md"}
 
 
@@ -33,7 +34,8 @@ def main() -> None:
             index[path.name] = {"path": f"helpers/{path.name}"}
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(index, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+    document = {"schema_version": INDEX_SCHEMA_VERSION, "helpers": index}
+    text = json.dumps(document, indent=2, ensure_ascii=False) + "\n"
     verb = "Wrote" if write_index(OUT_FILE, text) else "Unchanged:"
     print(f"{verb} {len(index)} helpers in {OUT_FILE}")
 

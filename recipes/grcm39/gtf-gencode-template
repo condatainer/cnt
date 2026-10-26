@@ -12,7 +12,7 @@
 
 #ENV:ANNOTATION_GTF={prefix}/gencode.vM{gencode_version}.primary_assembly.annotation.gtf   ## GENCODE M{gencode_version} GRCm39 comprehensive primary-assembly annotation GTF
 
-cd "$CNT_PREFIX"
+cd "$CNT_BUILD_PREFIX"
 
 echo "Decompressing the annotation" >&2
-pigz -dc -p "${NCPU:-4}" "$CNT_SRC_gtf" > "gencode.vM{gencode_version}.primary_assembly.annotation.gtf"
+pigz -dc -p "${NCPU:-4}" "$CNT_BUILD_SRC_gtf" > "gencode.vM{gencode_version}.primary_assembly.annotation.gtf"

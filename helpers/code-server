@@ -1,7 +1,7 @@
 #!/bin/bash
 #DESC: code-server (open-source VS Code, browser-based)
 
-#NCPUS: 4
+#NCPU: 4
 #MEM: 16G
 #TIME: 12:00:00
 
@@ -27,8 +27,15 @@ code-server \
     "${CNT_HELPER_CWD:-.}" &
 PID=$!
 
-condatainer _server_ready \
+# code-server's parent process gives its child a fixed 10s to start, so a slow
+# file system makes it exit with "timed out".
+if ! condatainer _server_ready \
     --port "$CNT_HELPER_PORT" \
-    --url-path "?folder=${CNT_HELPER_CWD}"
+    --pid "$PID" \
+    --url-path "?folder=${CNT_HELPER_CWD}"; then
+    condatainer _server_message --level error \
+        "code-server exited while starting. If the log says \"timed out\", the file system was too slow for its 10s start limit; resubmit later."
+    exit 1
+fi
 
 wait $PID
