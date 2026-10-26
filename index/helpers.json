@@ -14,7 +14,7 @@
     "rstudio-server-conda": {
       "path": "helpers/rstudio-server-conda",
       "description": "RStudio Server (with Conda R)",
-      "sha256": "e25de60f4b9d102e26ad8e646f678ee606cf1068b721c117a6957662551e2f20"
+      "sha256": "c32fcb2e3fb5a73809b3f6fff01366c981ae2b6a68c61fb43e90f5f9b6a3beb8"
     }
   }
 }
