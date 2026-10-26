@@ -22,6 +22,7 @@ from autoupdate import (COMMON_PARAMS, OPTIONAL, PRIMARY, REQUIRED,  # noqa: E40
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPES_DIR = ROOT / "recipes"
+HELPERS_DIR = ROOT / "helpers"
 
 SKIP_SUFFIXES = (".py", ".md")
 SKIP_NAMES = {"README.md"}
@@ -32,6 +33,10 @@ KNOWN_HEADERS = {
     "NCPU", "MEM", "TIME", "GPU",
 }
 SCHEDULER_HEADERS = ("#SBATCH", "#PBS", "#BSUB")
+# What a launch decides, so a helper that wrote one would be overruled by it.
+HELPER_LAUNCH_HEADERS = {"NAME", "OUTPUT", "ERROR", "PARTITION", "ACCOUNT"}
+# The interpreter lines condatainer runs: bash, or env followed by an interpreter.
+SHEBANG_RE = re.compile(r"^#!\s*(?:/bin/bash|/usr/bin/bash)(?:\s.*)?$|^#!\s*(?:/usr/bin/env|/bin/env)\s+[^-\s]\S*(?:\s.*)?$")
 RESERVED_PH = {"prefix"}
 # What $CNT_BUILD_SRC_<name> can be: it is an environment variable.
 SOURCE_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -438,6 +443,30 @@ def check(path: Path, seen_targets: dict[str, str]) -> None:
             warn(rel, f"#{key} below the header block is ignored: {line.strip()}")
 
 
+def check_helper(path: Path) -> None:
+    """A helper is one stand-alone file that condatainer copies at submission."""
+    rel = path.relative_to(ROOT).as_posix()
+    text = path.read_text(encoding="utf-8", errors="replace")
+    lines = text.splitlines()
+    if not lines or not SHEBANG_RE.match(lines[0].rstrip()):
+        err(rel, "the first line must be #!/bin/bash, #!/usr/bin/bash, "
+                 "#!/usr/bin/env <interpreter> or #!/bin/env <interpreter>")
+    if "CNT_HELPER_SCRIPT_DIR" in text:
+        err(rel, "CNT_HELPER_SCRIPT_DIR no longer exists; a helper is one file "
+                 "and reads nothing beside itself")
+    headers, _ = split_recipe(path)
+    keys = [header_key(h) for h in headers]
+    for key in keys:
+        if key in HELPER_LAUNCH_HEADERS:
+            err(rel, f"#{key}: is decided when the helper is launched")
+    for line in lines:
+        if line.startswith(SCHEDULER_HEADERS):
+            err(rel, f"{line.split()[0]} directive: a helper states what it needs "
+                     "in #NCPU:, #MEM:, #TIME: and #GPU:")
+    if "DESC" not in keys:
+        warn(rel, "no #DESC: header, so a search matches only the name")
+
+
 def main() -> int:
     seen_targets: dict[str, str] = {}
     count = 0
@@ -449,12 +478,19 @@ def main() -> int:
         check(path, seen_targets)
         count += 1
 
+    helpers = 0
+    if HELPERS_DIR.is_dir():
+        for path in sorted(HELPERS_DIR.iterdir()):
+            if path.is_file() and path.name not in SKIP_NAMES and not path.name.startswith("."):
+                check_helper(path)
+                helpers += 1
+
     for w in warnings:
         print(f"WARN  {w}")
     for e in errors:
         print(f"ERROR {e}")
 
-    print(f"\nChecked {count} recipes: {len(errors)} errors, "
+    print(f"\nChecked {count} recipes and {helpers} helpers: {len(errors)} errors, "
           f"{len(warnings)} warnings")
     return 1 if errors else 0
 
