@@ -2,13 +2,19 @@
   "schema_version": 1,
   "helpers": {
     "code-server": {
-      "path": "helpers/code-server"
+      "path": "helpers/code-server",
+      "description": "code-server (open-source VS Code, browser-based)",
+      "sha256": "ad33f89e09f71fc6004a4373cb742f39de77a45d6012f74b024fe27590de98e0"
     },
     "rstudio-server": {
-      "path": "helpers/rstudio-server"
+      "path": "helpers/rstudio-server",
+      "description": "RStudio Server (with R from base image)",
+      "sha256": "a748494373ba7fb19c692bac96b8cbc75f802e86a75355a914330bae80fb63f4"
     },
     "rstudio-server-conda": {
-      "path": "helpers/rstudio-server-conda"
+      "path": "helpers/rstudio-server-conda",
+      "description": "RStudio Server (with Conda R)",
+      "sha256": "e25de60f4b9d102e26ad8e646f678ee606cf1068b721c117a6957662551e2f20"
     }
   }
 }
