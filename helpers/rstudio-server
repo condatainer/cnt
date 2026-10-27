@@ -292,14 +292,14 @@ if [ "${RPROFILE:-no}" = "yes" ] && [ ! -f "$CNT_HELPER_CWD/.Rprofile" ]; then
 .set_repository_options()
 RPROFILE
     # END embedded from assets/helpers/rstudio-server/.Rprofile
-    condatainer _server_message "Wrote .Rprofile (P3M binary repos) to ${CNT_HELPER_CWD}"
+    condatainer _helper message "Wrote .Rprofile (P3M binary repos) to ${CNT_HELPER_CWD}"
 fi
 # endregion
 
-condatainer _server_message "Open project: rstudioapi::openProject(\"${CNT_HELPER_CWD}\")"
+condatainer _helper message "Open project: rstudioapi::openProject(\"${CNT_HELPER_CWD}\")"
 
 if [ -n "${PASSWORD:-}" ]; then
-    condatainer _server_message "Password: ${PASSWORD}"
+    condatainer _helper message "Password: ${PASSWORD}"
     cat > "$CNT_HELPER_STATE_DIR/auth" <<EOF
 #!/bin/bash
 # RStudio passes username as \$1 and password via stdin.
@@ -325,7 +325,7 @@ fi
     $_AUTH_OPTS &
 PID=$!
 
-condatainer _server_ready \
+condatainer _helper ready \
     --port "$CNT_HELPER_PORT"
 
 wait $PID

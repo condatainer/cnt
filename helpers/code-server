@@ -9,11 +9,11 @@
 
 #PARAM: PASSWORD=? --password "Password for authentication (empty for no auth)"
 
-condatainer _server_message \
+condatainer _helper message \
     "code-server cannot use Microsoft proprietary extensions such as Pylance or Copilot. Use vscode-server if you need them."
 
 if [ -n "${PASSWORD:-}" ]; then
-    condatainer _server_message "Password: ${PASSWORD}"
+    condatainer _helper message "Password: ${PASSWORD}"
     export PASSWORD
     AUTH_OPTS="--auth password"
 else
@@ -29,11 +29,11 @@ PID=$!
 
 # code-server's parent process gives its child a fixed 10s to start, so a slow
 # file system makes it exit with "timed out".
-if ! condatainer _server_ready \
+if ! condatainer _helper ready \
     --port "$CNT_HELPER_PORT" \
     --pid "$PID" \
     --url-path "?folder=${CNT_HELPER_CWD}"; then
-    condatainer _server_message --level error \
+    condatainer _helper message --level error \
         "code-server exited while starting. If the log says \"timed out\", the file system was too slow for its 10s start limit; resubmit later."
     exit 1
 fi
