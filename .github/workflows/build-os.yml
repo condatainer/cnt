@@ -1,0 +1,267 @@
+name: Build OS images
+
+# Builds the .def recipes whose image the registry does not hold yet, on amd64
+# and arm64, and pushes them. The registry is the only record of what is built:
+# `registry missing` compares each recipe with it, so a recipe that did not
+# change is skipped, and a recipe that did is rebuilt.
+#
+# Scope: a push checks the recipes it changed. A template that changed is
+# checked at every value, so a prebuilt image exists for each name. A weekly
+# run and an empty manual run check every OS recipe; a manual run can name
+# overlays or quoted patterns, such as 'ubuntu24/r/*', instead. The registry
+# decides what is missing, so the scope only limits how much is looked at.
+# Every build in one run records the same build time, so both architectures
+# land on one date tag.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'recipes/**/*.def'
+  # A weekly check starts what a failed run or a replaced run left behind.
+  schedule:
+    - cron: '17 5 * * 1'
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: "Names or quoted patterns, such as 'ubuntu24/r/*'; empty checks every OS recipe"
+        required: false
+        default: ''
+      condatainer_version:
+        description: 'Released condatainer version to build with'
+        required: false
+        default: '0.1.0'
+      push:
+        description: 'Push the images that were built'
+        type: boolean
+        default: false
+
+permissions: {}
+
+# One run at a time, so each plan sees what the run before it pushed. A run
+# that waits is replaced by a newer one, which is safe because a plan reads the
+# registry and not the event.
+concurrency:
+  group: build-os
+  cancel-in-progress: false
+
+env:
+  CONDATAINER_VERSION: ${{ inputs.condatainer_version || '0.1.0' }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    # packages: read lets the check see a package that is not public.
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      matrix: ${{ steps.missing.outputs.matrix }}
+      deferred: ${{ steps.missing.outputs.deferred }}
+      select: ${{ steps.missing.outputs.select }}
+      epoch: ${{ steps.epoch.outputs.epoch }}
+    steps:
+      # The history is needed to compare a push with the commit before it.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install condatainer
+        run: |
+          curl -fsSL https://install.condatainer.org \
+            | bash -s -- -p "$RUNNER_TEMP/cnt-root" -v "$CONDATAINER_VERSION" --download-only -y
+          echo "$RUNNER_TEMP/cnt-root/bin" >> "$GITHUB_PATH"
+          echo "CNT_ROOT=$RUNNER_TEMP/cnt-root" >> "$GITHUB_ENV"
+
+      - name: Set up condatainer
+        run: |
+          condatainer config set default_distro ubuntu24 -l r
+          condatainer config source add cnt "$GITHUB_WORKSPACE" -l r -y
+
+      # One row per overlay and architecture the registry does not hold.
+      # A name with no recipe is a problem, and stops the run.
+      # A matrix holds 256 rows. Whole names are taken in order until the next
+      # would not fit, and the rest are deferred to the run verify starts.
+      - id: missing
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TARGETS: ${{ inputs.targets }}
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          # What to look at: the names given, else the recipes a push changed,
+          # else every OS recipe (also when the push cannot be compared).
+          select=(--type os)
+          if [ -n "$TARGETS" ]; then
+            read -r -a select <<< "$TARGETS"
+          elif [ "$EVENT" = push ] && changed=$(python3 scripts/plan_os_targets.py); then
+            mapfile -t select < <(printf '%s\n' "$changed" | grep .)
+          fi
+          echo "select=${select[*]}" >> "$GITHUB_OUTPUT"
+          if [ ${#select[@]} -eq 0 ]; then
+            echo "No recipe changed."
+            echo "matrix=[]" >> "$GITHUB_OUTPUT"
+            echo "deferred=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          condatainer registry missing --source cnt --arch amd64,arm64 --json "${select[@]}" > missing.json
+          jq -r '.problems[] | "::error::\(.name): \(.message)"' missing.json
+          jq -e '.problems | length == 0' missing.json > /dev/null
+          jq -c '[.overlays[] | select(.published | not)
+              | {target: .name, arch, runner: (if .arch == "arm64" then "ubuntu-24.04-arm" else "ubuntu-24.04" end)}]
+            | group_by(.target)
+            | reduce .[] as $g ({rows: [], deferred: 0};
+                if .deferred == 0 and (.rows | length) + ($g | length) <= 256
+                then .rows += $g else .deferred += ($g | length) end)' missing.json > plan.json
+          echo "matrix=$(jq -c .rows plan.json)" >> "$GITHUB_OUTPUT"
+          echo "deferred=$(jq .deferred plan.json)" >> "$GITHUB_OUTPUT"
+          jq -r '.rows[] | "missing: \(.target) \(.arch)"' plan.json
+          jq -r 'select(.deferred > 0) | "::warning::\(.deferred) rows deferred to the next run"' plan.json
+
+      # One build time for every job in the run.
+      - id: epoch
+        run: echo "epoch=$(date +%s)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.matrix != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    # No write access: the recipe runs in this job.
+    permissions:
+      contents: read
+    env:
+      SOURCE_DATE_EPOCH: ${{ needs.plan.outputs.epoch }}
+      TARGET: ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install condatainer
+        run: |
+          curl -fsSL https://install.condatainer.org \
+            | bash -s -- -p "$RUNNER_TEMP/cnt-root" -v "$CONDATAINER_VERSION" --download-only -y
+          echo "$RUNNER_TEMP/cnt-root/bin" >> "$GITHUB_PATH"
+          echo "CNT_ROOT=$RUNNER_TEMP/cnt-root" >> "$GITHUB_ENV"
+
+      # A .def build runs the downloaded apptainer with --fakeroot, which needs
+      # unprivileged user namespaces. Ubuntu 24.04 restricts them by default.
+      - name: Allow user namespaces
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - name: Set up condatainer
+        run: |
+          condatainer update --libexec
+          condatainer config set default_distro "${TARGET%%/*}" -l r
+          condatainer config source add cnt "$GITHUB_WORKSPACE" -l r -y
+
+      # The plan found no copy, so this builds. --no-prebuilt keeps a copy that
+      # appeared since then from being pulled and uploaded again.
+      - name: Build
+        run: |
+          touch "$RUNNER_TEMP/before-create"
+          condatainer create "$TARGET" --no-prebuilt --no-submit -y
+
+      - name: Find the image
+        id: image
+        run: |
+          image=$(find "$CNT_ROOT" -name '*.sqf' -newer "$RUNNER_TEMP/before-create" -print -quit)
+          [ -n "$image" ] || { echo "No image was written for $TARGET" >&2; exit 1; }
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "slug=$(echo "$TARGET" | tr '/' '-')-${{ matrix.arch }}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: os-${{ steps.image.outputs.slug }}
+          path: ${{ steps.image.outputs.image }}
+          retention-days: 3
+          if-no-files-found: error
+
+  push:
+    needs: [plan, build]
+    if: github.event_name != 'workflow_dispatch' || inputs.push
+    runs-on: ubuntu-24.04
+    # Never runs a recipe. Pushes every architecture: each image records its own.
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install condatainer
+        run: |
+          curl -fsSL https://install.condatainer.org \
+            | bash -s -- -p "$RUNNER_TEMP/cnt-root" -v "$CONDATAINER_VERSION" --download-only -y
+          echo "$RUNNER_TEMP/cnt-root/bin" >> "$GITHUB_PATH"
+          echo "CNT_ROOT=$RUNNER_TEMP/cnt-root" >> "$GITHUB_ENV"
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: os-*
+          path: images
+
+      # The source's source.json names the registry and who may download from it.
+      - name: Set up condatainer
+        run: condatainer config source add cnt "$GITHUB_WORKSPACE" -l r -y
+
+      # A push that did not finish fails the job; the document says which.
+      - name: Push
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          images=(images/*/*.sqf)
+          [ ${#images[@]} -gt 0 ] || { echo "Nothing was built; nothing to push."; exit 0; }
+          for image in "${images[@]}"; do
+            condatainer registry push "$image" --source cnt --json -y > push.json
+            jq -r '.pushes[] | "\(.outcome)  \(.name) \(.arch)  \(.digest // "")"' push.json
+            jq -e '.pushes | all(.outcome == "done")' push.json > /dev/null
+          done
+
+  # What was pushed is what the plan asked for: only the deferred rows are
+  # missing now. Those are started as a new run, which ends when none are left.
+  verify:
+    needs: [plan, push]
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install condatainer
+        run: |
+          curl -fsSL https://install.condatainer.org \
+            | bash -s -- -p "$RUNNER_TEMP/cnt-root" -v "$CONDATAINER_VERSION" --download-only -y
+          echo "$RUNNER_TEMP/cnt-root/bin" >> "$GITHUB_PATH"
+          echo "CNT_ROOT=$RUNNER_TEMP/cnt-root" >> "$GITHUB_ENV"
+
+      - name: Check the registry
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+          SELECT: ${{ needs.plan.outputs.select }}
+          DEFERRED: ${{ needs.plan.outputs.deferred }}
+        run: |
+          condatainer config set default_distro ubuntu24 -l r
+          condatainer config source add cnt "$GITHUB_WORKSPACE" -l r -y
+          read -r -a select <<< "$SELECT"
+          condatainer registry missing --source cnt --arch amd64,arm64 --json "${select[@]}" > missing.json
+          jq -r '.overlays[] | select(.published | not) | "still missing: \(.name) \(.arch)"' missing.json
+          left=$(jq '[.overlays[] | select(.published | not)] | length' missing.json)
+          [ "$left" -le "$DEFERRED" ] || { echo "::error::$left missing, $DEFERRED deferred"; exit 1; }
+          if [ "$left" -gt 0 ]; then
+            [ "$SELECT" != "--type os" ] || SELECT=""
+            gh workflow run build-os.yml --ref "$GITHUB_REF_NAME" \
+              -f targets="$SELECT" -f push=true -f condatainer_version="$CONDATAINER_VERSION"
+          fi
