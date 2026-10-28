@@ -12,6 +12,9 @@ name: Build OS images
 # decides what is missing, so the scope only limits how much is looked at.
 # Every build in one run records the same build time, so both architectures
 # land on one date tag.
+#
+# A build job pushes its own image, so one failure does not hold back the rest.
+# A manual run with push unchecked uploads the images as artifacts instead.
 
 on:
   push:
@@ -33,7 +36,7 @@ on:
         required: false
         default: '0.1.0'
       push:
-        description: 'Push the images that were built; uncheck for a test build that publishes nothing'
+        description: 'Push each image as it is built; uncheck for a test build that keeps the images as artifacts for a day'
         type: boolean
         default: true
 
@@ -133,14 +136,18 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.plan.outputs.matrix) }}
     runs-on: ${{ matrix.runner }}
-    # No write access: the recipe runs in this job.
+    # The recipe and the push run in this job. Only the push step is given the
+    # token, and the checkout does not keep one.
     permissions:
       contents: read
+      packages: write
     env:
       SOURCE_DATE_EPOCH: ${{ needs.plan.outputs.epoch }}
       TARGET: ${{ matrix.target }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Install condatainer
         run: |
@@ -186,7 +193,24 @@ jobs:
           echo "image=$image" >> "$GITHUB_OUTPUT"
           echo "slug=$(echo "$TARGET" | tr '/' '-')-${{ matrix.arch }}" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/upload-artifact@v4
+      # The source's source.json names the registry and who may download from it.
+      - name: Push
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          if ! condatainer registry push "$IMAGE" --source cnt --json -y > push.json ||
+             ! jq -e '.pushes | all(.outcome == "done")' push.json > /dev/null; then
+            jq -r '.pushes[]? | "\(.outcome)  \(.name) \(.arch)  \(.error // "")"' push.json || true
+            echo "::error::$TARGET was not pushed"
+            exit 1
+          fi
+          jq -r '.pushes[] | "\(.outcome)  \(.name) \(.arch)  \(.digest // "")"' push.json
+
+      - name: Keep the image
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.push }}
+        uses: actions/upload-artifact@v4
         with:
           name: os-${{ steps.image.outputs.slug }}
           path: ${{ steps.image.outputs.image }}
@@ -194,51 +218,12 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-  push:
-    needs: [plan, build]
-    if: github.event_name != 'workflow_dispatch' || inputs.push
-    runs-on: ubuntu-24.04
-    # Never runs a recipe. Pushes every architecture: each image records its own.
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Install condatainer
-        run: |
-          curl -fsSL https://install.condatainer.org \
-            | bash -s -- -p "$RUNNER_TEMP/cnt-root" -v "$CONDATAINER_VERSION" --download-only -y
-          echo "$RUNNER_TEMP/cnt-root/bin" >> "$GITHUB_PATH"
-          echo "CNT_ROOT=$RUNNER_TEMP/cnt-root" >> "$GITHUB_ENV"
-
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: os-*
-          path: images
-
-      # The source's source.json names the registry and who may download from it.
-      - name: Set up condatainer
-        run: condatainer config source add cnt "$GITHUB_WORKSPACE" -l r -y
-
-      # A push that did not finish fails the job; the document says which.
-      - name: Push
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          shopt -s nullglob
-          images=(images/*/*.sqf)
-          [ ${#images[@]} -gt 0 ] || { echo "Nothing was built; nothing to push."; exit 0; }
-          for image in "${images[@]}"; do
-            condatainer registry push "$image" --source cnt --json -y > push.json
-            jq -r '.pushes[] | "\(.outcome)  \(.name) \(.arch)  \(.digest // "")"' push.json
-            jq -e '.pushes | all(.outcome == "done")' push.json > /dev/null
-          done
-
   # What was pushed is what the plan asked for: only the deferred rows are
   # missing now. Those are started as a new run, which ends when none are left.
+  # It also runs after a failed build, and names what is still missing.
   verify:
-    needs: [plan, push]
+    needs: [plan, build]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.build.result != 'skipped' && (github.event_name != 'workflow_dispatch' || inputs.push) }}
     runs-on: ubuntu-24.04
     permissions:
       actions: write
