@@ -5,7 +5,7 @@
 
 #AUTOUPDATE:samtools:conda bioconda::samtools regex=^v?(\d+\.\d+(?:\.\d+)?)$
 
-#DEP:samtools/1.24>=1.10
+#DEP:samtools/1.25>=1.10
 #SOURCE:genome https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_49/GRCh38.primary_assembly.genome.fa.gz
 
 #ENV:GENOME_FASTA={prefix}/GRCh38.primary_assembly.genome.fa   ## GRCh38 primary-assembly genome FASTA with GENCODE sequence names

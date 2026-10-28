@@ -14,7 +14,7 @@
     },
     "grch38/genome/gencode": {
       "arch": ["noarch"],
-      "deps": ["samtools/1.24>=1.10"],
+      "deps": ["samtools/1.25>=1.10"],
       "description": "GRCh38 primary-assembly genome FASTA with GENCODE sequence names",
       "path": "recipes/grch38/genome/gencode",
       "type": "data",
@@ -88,7 +88,7 @@
     },
     "grcm39/genome/gencode": {
       "arch": ["noarch"],
-      "deps": ["samtools/1.24>=1.10"],
+      "deps": ["samtools/1.25>=1.10"],
       "description": "GRCm39 primary-assembly genome FASTA with GENCODE sequence names",
       "path": "recipes/grcm39/genome/gencode",
       "type": "data",
