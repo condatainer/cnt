@@ -33,9 +33,9 @@ on:
         required: false
         default: '0.1.0'
       push:
-        description: 'Push the images that were built'
+        description: 'Push the images that were built; uncheck for a test build that publishes nothing'
         type: boolean
-        default: false
+        default: true
 
 permissions: {}
 
@@ -62,10 +62,11 @@ jobs:
       select: ${{ steps.missing.outputs.select }}
       epoch: ${{ steps.epoch.outputs.epoch }}
     steps:
-      # The history is needed to compare a push with the commit before it.
+      # A push is compared with the commit before it, which needs the history.
+      # The depth is a string: a bare 0 is false in an expression.
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          fetch-depth: ${{ github.event_name == 'push' && '0' || '1' }}
 
       - name: Install condatainer
         run: |
@@ -153,10 +154,16 @@ jobs:
       - name: Allow user namespaces
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
+      # A runner starts with about 100 GB free, more than a build needs. Only a
+      # smaller disk is cleaned, since removing the preinstalled tools takes minutes.
       - name: Free disk space
         run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
           df -h /
+          avail=$(df --output=avail -BG / | tail -1 | tr -dc 0-9)
+          if [ "$avail" -lt 50 ]; then
+            sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+            df -h /
+          fi
 
       - name: Set up condatainer
         run: |
@@ -183,7 +190,8 @@ jobs:
         with:
           name: os-${{ steps.image.outputs.slug }}
           path: ${{ steps.image.outputs.image }}
-          retention-days: 3
+          compression-level: 0
+          retention-days: 1
           if-no-files-found: error
 
   push:
