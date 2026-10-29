@@ -226,7 +226,7 @@
       "is_template": true,
       "path": "recipes/ubuntu24/virtualgl-template.def",
       "ph": {
-        "version": ["3.1.5", "3.1.4", "3.1.3", "3.1.2", "3.1.1", "3.1"]
+        "version": ["3.1.5", "3.1.4", "3.1.3", "3.1.2", "3.1.1"]
       },
       "target_template": "ubuntu24/virtualgl/{version}",
       "type": "os",
