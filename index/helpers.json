@@ -6,6 +6,11 @@
       "description": "code-server (open-source VS Code, browser-based)",
       "sha256": "4a93295c2b1a4af2c642eb1021dfec7edd6d3dab526f9fe64a6d3b0d9c90b9a4"
     },
+    "igv": {
+      "path": "helpers/igv",
+      "description": "Integrative Genomics Viewer (VNC)",
+      "sha256": "1df80f5f53523396a8dd761d4162d6797077bc378d819a3f2ad66e61b7257777"
+    },
     "rstudio-server": {
       "path": "helpers/rstudio-server",
       "description": "RStudio Server (with R from base image)",
@@ -15,6 +20,11 @@
       "path": "helpers/rstudio-server-conda",
       "description": "RStudio Server (with Conda R)",
       "sha256": "15618ef675b0d6cdb02f7b1d5a36c84fe13956fd4c37ca91b5e83a4df32396de"
+    },
+    "xfce4": {
+      "path": "helpers/xfce4",
+      "description": "XFCE4 desktop (TurboVNC, browser client with audio)",
+      "sha256": "0c307815057ee51978d6ec62cd47818dff53cba68460842fb3b7fa3d73ac6605"
     }
   }
 }

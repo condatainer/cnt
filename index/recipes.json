@@ -1,6 +1,17 @@
 {
   "schema_version": 1,
   "recipes": {
+    "cnt-vnc-viewer-template": {
+      "description": "cnt-vnc-viewer {version}, a browser VNC client with audio and clipboard",
+      "is_template": true,
+      "path": "recipes/cnt-vnc-viewer-template",
+      "ph": {
+        "version": ["0.1.0"]
+      },
+      "target_template": "cnt-vnc-viewer/{version}",
+      "type": "app",
+      "url": "https://github.com/condatainer/cnt-vnc-viewer"
+    },
     "code-server-template": {
       "description": "code-server {version}, open-source VS Code in the browser",
       "is_template": true,
@@ -198,6 +209,34 @@
       "target_template": "ubuntu24/rstudio-server/{version}",
       "type": "os",
       "url": "https://posit.co/products/open-source/rstudio-server/"
+    },
+    "ubuntu24/turbovnc-template": {
+      "description": "TurboVNC {version} on Ubuntu 24.04",
+      "is_template": true,
+      "path": "recipes/ubuntu24/turbovnc-template.def",
+      "ph": {
+        "version": ["3.3.1", "3.3", "3.2.1", "3.2", "3.1.4", "3.1.3", "3.1.2", "3.1.1", "3.1"]
+      },
+      "target_template": "ubuntu24/turbovnc/{version}",
+      "type": "os",
+      "url": "https://turbovnc.org"
+    },
+    "ubuntu24/virtualgl-template": {
+      "description": "VirtualGL {version} on Ubuntu 24.04",
+      "is_template": true,
+      "path": "recipes/ubuntu24/virtualgl-template.def",
+      "ph": {
+        "version": ["3.1.5", "3.1.4", "3.1.3", "3.1.2", "3.1.1", "3.1"]
+      },
+      "target_template": "ubuntu24/virtualgl/{version}",
+      "type": "os",
+      "url": "https://virtualgl.org"
+    },
+    "ubuntu24/xfce4": {
+      "description": "XFCE4 desktop on Ubuntu 24.04",
+      "path": "recipes/ubuntu24/xfce4.def",
+      "type": "os",
+      "url": "https://www.xfce.org"
     }
   }
 }
