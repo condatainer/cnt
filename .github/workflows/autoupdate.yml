@@ -19,6 +19,7 @@ on:
 permissions:
   contents: write
   issues: write     # a persistent failure is reported as one rolling issue
+  actions: write    # starts the OS build when a .def recipe changed
 
 concurrency:
   group: autoupdate
@@ -71,6 +72,8 @@ jobs:
 
       - name: Commit
         if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -85,10 +88,19 @@ jobs:
             exit 0
           fi
 
+          defs=$(git diff --staged --name-only -- 'recipes/*.def')
+
           # [skip ci] so generate-index.yml does not re-run on this push and
-          # regenerate what this job already wrote.
+          # regenerate what this job already wrote. It also keeps build-os.yml
+          # from starting on the push, so a changed .def starts it below.
           git commit -m "chore: update recipes from upstream [skip ci]"
           git push
+
+          # An empty run checks every OS recipe against the registry, so it
+          # builds exactly the images the changed recipes left missing.
+          if [ -n "$defs" ]; then
+            gh workflow run build-os.yml --ref "$GITHUB_REF_NAME"
+          fi
 
       - name: Summarise
         if: always()

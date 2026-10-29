@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Keep recipes current with their upstreams.
 
-Implements plan/autoupdate.md. A *source* discovers versions and never touches a
-file; this script is the only thing that writes recipes.
+A *source* discovers versions and never touches a file; this script is the only
+thing that writes recipes. CI commits its result straight to the default branch,
+so the checks that refuse a replaced list or an implausible value stand in for a
+review.
 
     #AUTOUPDATE:<name>:<source> [<param>=<value> ...]
 

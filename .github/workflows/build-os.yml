@@ -7,7 +7,8 @@ name: Build OS images
 #
 # Scope: a push checks the recipes it changed. A template that changed is
 # checked at every value, so a prebuilt image exists for each name. A weekly
-# run and an empty manual run check every OS recipe; a manual run can name
+# run, an empty manual run and the run the recipe auto-update starts after
+# changing a .def check every OS recipe; a manual run can name
 # overlays or quoted patterns, such as 'ubuntu24/r/*', instead. The registry
 # decides what is missing, so the scope only limits how much is looked at.
 # Every build in one run records the same build time, so both architectures
