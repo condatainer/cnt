@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+#DESC:cnt-vnc-viewer {version}, a browser VNC client with audio and clipboard
+#URL:https://github.com/condatainer/cnt-vnc-viewer
+#TARGET:cnt-vnc-viewer/{version}
+
+#PH:version:0.1.0
+
+#AUTOUPDATE:version:github condatainer/cnt-vnc-viewer regex=@version min=0.1.0 verify=head
+
+#SOURCE:bin amd64 https://github.com/condatainer/cnt-vnc-viewer/releases/download/v{version}/cnt-vnc-viewer-linux-musl-amd64
+#SOURCE:bin arm64 https://github.com/condatainer/cnt-vnc-viewer/releases/download/v{version}/cnt-vnc-viewer-linux-musl-arm64
+
+# A static musl binary with the frontend embedded, so it runs on any base.
+mkdir -p "$CNT_BUILD_PREFIX/bin"
+install -m 0755 "$CNT_BUILD_SRC_bin" "$CNT_BUILD_PREFIX/bin/cnt-vnc-viewer"

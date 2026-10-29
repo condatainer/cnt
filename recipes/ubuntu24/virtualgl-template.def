@@ -1,0 +1,44 @@
+#DESC:VirtualGL {version} on Ubuntu 24.04
+#URL:https://virtualgl.org
+#TARGET:ubuntu24/virtualgl/{version}
+
+#PH:version:3.1.5,3.1.4,3.1.3,3.1.2,3.1.1,3.1
+
+#AUTOUPDATE:version:github VirtualGL/virtualgl regex=@version min=3.1 verify=head
+
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    Description "Ubuntu24 with VirtualGL {version}"
+
+%environment
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+    export PS1='CNT \w> '
+
+%runscript
+    exec /bin/bash "$@"
+
+%post
+    # Avoid interactive prompts
+    export DEBIAN_FRONTEND=noninteractive
+
+    # A root-mapped build has one uid, so apt cannot drop to its _apt user.
+    echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/99-no-sandbox
+
+    apt-get -y update && apt-get -y install ca-certificates curl
+
+    # Each arch is a literal URL, so the updater can HEAD both before adding a
+    # version. apt installs the deb's dependencies; vglrun lands in /opt/VirtualGL.
+    case "$(uname -m)" in
+        x86_64) url="https://github.com/VirtualGL/virtualgl/releases/download/{version}/virtualgl_{version}_amd64.deb" ;;
+        aarch64) url="https://github.com/VirtualGL/virtualgl/releases/download/{version}/virtualgl_{version}_arm64.deb" ;;
+        *) echo "ERROR: Unsupported architecture: $(uname -m)"; exit 1 ;;
+    esac
+    curl -fsSL -o /tmp/virtualgl.deb "$url"
+    apt-get -y install /tmp/virtualgl.deb
+    rm -f /tmp/virtualgl.deb
+
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+    rm -f /etc/apt/apt.conf.d/99-no-sandbox

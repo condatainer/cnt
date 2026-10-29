@@ -1,0 +1,135 @@
+#!/bin/bash
+#DESC: XFCE4 desktop (TurboVNC, browser client with audio)
+
+#NCPU: 3
+#MEM: 12G
+#TIME: 8:00:00
+
+#DEP: base
+#DEP: xfce4
+#DEP: turbovnc
+#DEP: virtualgl
+#DEP: cnt-vnc-viewer
+#BIND: $CNT_HELPER_STATE_DIR/vnc:$HOME/.vnc
+
+# Check if 127.0.0.1:$1 is accepting TCP connections. Uses bash's /dev/tcp
+# redirection instead of `nc` — these images don't install netcat.
+_port_open() {
+    (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null
+}
+
+# 1. XDG user folders under one directory, so $HOME does not fill with Desktop, Documents, etc.
+DESKTOP_HOME="$HOME/desktop-home"
+mkdir -p "$HOME/.config"
+cat > "$HOME/.config/user-dirs.dirs" <<EOT
+XDG_DESKTOP_DIR="$DESKTOP_HOME/Desktop"
+XDG_DOCUMENTS_DIR="$DESKTOP_HOME/Documents"
+XDG_DOWNLOAD_DIR="$DESKTOP_HOME/Downloads"
+XDG_MUSIC_DIR="$DESKTOP_HOME/Music"
+XDG_PICTURES_DIR="$DESKTOP_HOME/Pictures"
+XDG_PUBLICSHARE_DIR="$DESKTOP_HOME/Public"
+XDG_TEMPLATES_DIR="$DESKTOP_HOME/Templates"
+XDG_VIDEOS_DIR="$DESKTOP_HOME/Videos"
+EOT
+mkdir -p "$DESKTOP_HOME"/{Desktop,Documents,Downloads,Music,Pictures,Public,Templates,Videos}
+
+# 2. xstartup — per-id in state dir.
+cat > "$CNT_HELPER_STATE_DIR/xstartup" <<'EOF'
+#!/bin/sh
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+exec dbus-launch --exit-with-session startxfce4
+EOF
+chmod +x "$CNT_HELPER_STATE_DIR/xstartup"
+
+# 3. XDG_RUNTIME_DIR — per-id to avoid dbus conflicts between sessions.
+export XDG_RUNTIME_DIR="$CNT_HELPER_TMPDIR/xdg_runtime"
+mkdir -p "$XDG_RUNTIME_DIR"
+chmod 700 "$XDG_RUNTIME_DIR"
+
+# 4. glib schemas — compile into per-job share dir (wiped by Slurm/cleanup; avoids quota).
+SCHEMA_DIR="$CNT_HELPER_TMPDIR/share/glib-2.0/schemas"
+mkdir -p "$SCHEMA_DIR"
+cp -r /usr/share/glib-2.0/schemas/* "$SCHEMA_DIR/" 2>/dev/null || true
+glib-compile-schemas "$SCHEMA_DIR" 2>/dev/null || true
+export XDG_DATA_DIRS="$CNT_HELPER_TMPDIR/share:/usr/local/share:/usr/share"
+xdg-user-dirs-update 2>/dev/null || true
+
+# put TurboVNC and VirtualGL on PATH.
+export PATH="/opt/TurboVNC/bin:/opt/VirtualGL/bin:$PATH"
+
+# With a GPU in the job, vglrun renders on it through EGL without -d.
+[ -e /dev/nvidiactl ] && export VGL_DISPLAY=egl
+
+# Two secrets: the VNC password, of which only the first 8 characters count, and
+# the viewer's token, which gates its video and audio streams.
+mkdir -p "$HOME/.vnc"
+_secret=$(openssl rand -base64 24 | tr -dc 'A-Za-z0-9')
+VNC_PASSWD=${_secret:0:8}
+VIEWER_TOKEN=${_secret:8:16}
+printf '%s\n%s\n' "$VNC_PASSWD" "$VNC_PASSWD" | vncpasswd -f > "$HOME/.vnc/passwd"
+chmod 600 "$HOME/.vnc/passwd"
+
+GEOMETRY=1600x900
+
+# Cleanup trap. Stopping the viewer also stops the audio daemon it spawned.
+VIEWER_PID=""
+cleanup() {
+    if [ -n "$VIEWER_PID" ]; then
+        kill "$VIEWER_PID" 2>/dev/null
+        wait "$VIEWER_PID" 2>/dev/null
+    fi
+    vncserver -kill "$DISPLAY" >/dev/null 2>&1 || true
+    rm -f "/tmp/.X${DISPLAY_NUM}-lock" "/tmp/.X11-unix/X${DISPLAY_NUM}"
+    exit 0
+}
+trap cleanup SIGINT SIGTERM
+
+# The viewer's audio daemon creates this socket and the desktop plays to it.
+# Node-local, since a unix socket cannot live on the NFS state directory.
+export PULSE_SERVER="unix:$CNT_HELPER_TMPDIR/pulse/native"
+
+# Start TurboVNC — try displays in order; a failed attempt (e.g. lost a race
+# with another launch for the same display) just advances to the next
+# candidate instead of aborting. A failed attempt leaves that display's lock and
+# socket alone, since they may belong to the launch that won it.
+DISPLAY_NUM=""
+for i in $(seq 10 999); do
+    [ -f "/tmp/.X${i}-lock" ] && continue
+    VNC_PORT=$((5900 + i))
+    _port_open "$VNC_PORT" && continue
+    if { echo "=== attempt :${i} $(date) ==="; vncserver ":${i}" \
+            -geometry "$GEOMETRY" \
+            -depth 24 \
+            -localhost \
+            -securitytypes vnc \
+            -rfbport "$VNC_PORT" \
+            -rfbauth "$HOME/.vnc/passwd" \
+            -deferupdate 40 \
+            -xstartup "$CNT_HELPER_STATE_DIR/xstartup"; } >>"$CNT_HELPER_STATE_DIR/vncserver.log" 2>&1; then
+        DISPLAY_NUM=$i
+        break
+    fi
+done
+if [ -z "$DISPLAY_NUM" ]; then
+    condatainer _helper message "ERROR: No free X display found (tried :10-:999)"
+    exit 1
+fi
+export DISPLAY=":${DISPLAY_NUM}"
+
+cnt-vnc-viewer \
+    -listen-http "${CNT_HELPER_BIND_ADDR:-127.0.0.1}:$CNT_HELPER_PORT" \
+    -vnc-addr "127.0.0.1:$VNC_PORT" \
+    -native-geometry "$GEOMETRY" \
+    -pulse-spawn \
+    -pulse-server "$PULSE_SERVER" \
+    -auth-token "$VIEWER_TOKEN" \
+    -log-file "$CNT_HELPER_STATE_DIR/cnt-vnc-viewer.log" &
+VIEWER_PID=$!
+
+condatainer _helper ready \
+    --port "$CNT_HELPER_PORT" \
+    --url-path "?autoconnect=true&scale=remote-resize&password=${VNC_PASSWD}&token=${VIEWER_TOKEN}"
+
+wait "$VIEWER_PID"
+cleanup
