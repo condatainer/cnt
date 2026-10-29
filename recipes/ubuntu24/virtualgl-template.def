@@ -2,9 +2,9 @@
 #URL:https://virtualgl.org
 #TARGET:ubuntu24/virtualgl/{version}
 
-#PH:version:3.1.5,3.1.4,3.1.3,3.1.2,3.1.1,3.1
+#PH:version:3.1.5,3.1.4,3.1.3,3.1.2,3.1.1
 
-#AUTOUPDATE:version:github VirtualGL/virtualgl regex=@version min=3.1 verify=head
+#AUTOUPDATE:version:github VirtualGL/virtualgl regex=@version min=3.1.1 verify=head
 
 Bootstrap: docker
 From: ubuntu:24.04
