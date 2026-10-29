@@ -1,0 +1,90 @@
+#!/bin/bash
+#DESC: VS Code Server
+
+#NCPU: 4
+#MEM: 16G
+#TIME: 12:00:00
+
+#PARAM: TOKEN=? --token,-a "Connection token (auto-generated if empty)"
+#PARAM: CODE_DIR=? --code-dir,-d "Directory for the VS Code CLI and server (default: $SCRATCH/.vscode, else ~/.vscode)"
+
+TOKEN="${TOKEN:-$(openssl rand -hex 8 2>/dev/null || echo "$(date +%s)$RANDOM")}"
+
+# The VS Code CLI and server live under CODE_DIR so they persist across jobs.
+# Default: scratch when it is set and writable, else the home directory.
+if [ -z "${CODE_DIR:-}" ]; then
+    if [ -n "${SCRATCH:-}" ] && [ -w "$SCRATCH" ]; then
+        CODE_DIR="$SCRATCH/.vscode"
+    else
+        CODE_DIR="$HOME/.vscode"
+    fi
+fi
+CODE_BIN="$CODE_DIR/bin/code"
+export VSCODE_CLI_DATA_DIR="$CODE_DIR/cli"
+mkdir -p "$CODE_DIR/server"
+if [ ! -f "$CODE_BIN" ]; then
+    echo "Downloading VS Code CLI..."
+    ARCH=$(uname -m)
+    case "$ARCH" in
+        x86_64)  ARCH="linux-x64" ;;
+        aarch64) ARCH="linux-arm64" ;;
+        *)
+            condatainer _helper message --level error "Unsupported architecture: $ARCH"
+            exit 1
+            ;;
+    esac
+    mkdir -p "$(dirname "$CODE_BIN")"
+    if ! wget -q -O "$CNT_HELPER_TMPDIR/vscode-cli.tar.gz" \
+        "https://update.code.visualstudio.com/latest/cli-${ARCH}/stable"; then
+        condatainer _helper message --level error "Could not download the VS Code CLI."
+        exit 1
+    fi
+    tar -xzf "$CNT_HELPER_TMPDIR/vscode-cli.tar.gz" -C "$(dirname "$CODE_BIN")" code
+    rm -f "$CNT_HELPER_TMPDIR/vscode-cli.tar.gz"
+    chmod +x "$CODE_BIN"
+    echo "VS Code CLI installed: $("$CODE_BIN" --version | head -1)"
+else
+    _update=$("$CODE_BIN" update 2>&1 || true)
+    case "$_update" in
+        *"Successfully updated"*)
+            echo "VS Code CLI: $(printf '%s\n' "$_update" | tail -1)" ;;
+    esac
+fi
+
+# The token goes in a private file, so it is not in the process arguments other users can see.
+( umask 077; printf '%s' "$TOKEN" > "$CNT_HELPER_TMPDIR/vscode-token" )
+
+"$CODE_BIN" serve-web \
+    --connection-token-file "$CNT_HELPER_TMPDIR/vscode-token" \
+    --host "${CNT_HELPER_BIND_ADDR:-127.0.0.1}" \
+    --port "$CNT_HELPER_PORT" \
+    --server-data-dir "$CODE_DIR/server" \
+    --accept-server-license-terms &
+PID=$!
+
+# serve-web downloads the server on its first request and answers 202 until it is done.
+# Make that request now, so the first page load is the editor and not the wait page.
+_told=0
+for _ in $(seq 1 90); do
+    kill -0 "$PID" 2>/dev/null || exit 1
+    _code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 \
+        "http://127.0.0.1:${CNT_HELPER_PORT}/?tkn=${TOKEN}" 2>/dev/null || true)
+    case "$_code" in
+        000) ;;
+        202)
+            if [ "$_told" = 0 ]; then
+                echo "Downloading the VS Code server..."
+                _told=1
+            fi
+            ;;
+        *) break ;;
+    esac
+    sleep 2
+done
+
+condatainer _helper ready \
+    --port "$CNT_HELPER_PORT" \
+    --pid "$PID" \
+    --url-path "?tkn=${TOKEN}&folder=${CNT_HELPER_CWD}"
+
+wait $PID
