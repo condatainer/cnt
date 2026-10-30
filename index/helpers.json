@@ -9,12 +9,12 @@
     "igv": {
       "path": "helpers/igv",
       "description": "Integrative Genomics Viewer (VNC)",
-      "sha256": "1df80f5f53523396a8dd761d4162d6797077bc378d819a3f2ad66e61b7257777"
+      "sha256": "da125d18a89771dc5e2be143c5ec0b65da8fc85e3397ba94fa01dd45512a4de4"
     },
     "jupyterlab": {
       "path": "helpers/jupyterlab",
       "description": "Jupyter Lab",
-      "sha256": "2ee8a59214a463af125232fb7be27be9a9a9db17b386dff16b356d488cb89bc0"
+      "sha256": "b387a119dbaf62d8a4c153227b4607e91a5a99d8e0a9bd2b1f1d220ccd913fb4"
     },
     "rstudio-server": {
       "path": "helpers/rstudio-server",
@@ -24,7 +24,7 @@
     "rstudio-server-conda": {
       "path": "helpers/rstudio-server-conda",
       "description": "RStudio Server (with Conda R)",
-      "sha256": "15618ef675b0d6cdb02f7b1d5a36c84fe13956fd4c37ca91b5e83a4df32396de"
+      "sha256": "db0b75c70a2377bcf52ecc41f121224d1953e6de6a16681b474c4f270d1a01a8"
     },
     "vscode-server": {
       "path": "helpers/vscode-server",
