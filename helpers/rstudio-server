@@ -75,13 +75,16 @@ fi
 
 # region .Rprofile (generated — edit assets/helpers/rstudio-server/.Rprofile instead)
 
-# --write-rprofile opts in to writing a starter .Rprofile (P3M binary repos),
-# independent of whether .Rproj already existed.
-if [ "${RPROFILE:-no}" = "yes" ] && [ ! -f "$CNT_HELPER_CWD/.Rprofile" ]; then
+# --write-rprofile opts in to a managed .Rprofile block (P3M binary repos),
+# independent of whether .Rproj already existed. A new file gets the block;
+# the block of an existing file is replaced in place, so lines around it stay.
+if [ "${RPROFILE:-no}" = "yes" ]; then
+    rprofile="$CNT_HELPER_CWD/.Rprofile"
+    rprofile_new="$CNT_HELPER_STATE_DIR/Rprofile.new"
     # BEGIN embedded from assets/helpers/rstudio-server/.Rprofile — edit that
     # file, not here, then run scripts/autoupdate/helpers_rprofile_embed.py
-    cat > "$CNT_HELPER_CWD/.Rprofile" <<'RPROFILE'
-#!/usr/bin/env Rscript
+    cat > "$rprofile_new" <<'RPROFILE'
+# >>> condatainer rprofile
 # Set CRAN repo to Posit Public Package Manager (P3M) binary repos for supported distros
 .set_repository_options <- function(repo = c("bioconductor", "cran"), bioc_version = NULL, latest_cran = FALSE) {
   repo <- match.arg(repo)
@@ -290,9 +293,24 @@ if [ "${RPROFILE:-no}" = "yes" ] && [ ! -f "$CNT_HELPER_CWD/.Rprofile" ]; then
 }
 
 .set_repository_options()
+# <<< condatainer rprofile
 RPROFILE
     # END embedded from assets/helpers/rstudio-server/.Rprofile
-    condatainer _helper message "Wrote .Rprofile (P3M binary repos) to ${CNT_HELPER_CWD}"
+    if [ ! -f "$rprofile" ]; then
+        cp "$rprofile_new" "$rprofile"
+        condatainer _helper message "Wrote .Rprofile (P3M binary repos) to ${CNT_HELPER_CWD}"
+    elif grep -q '^# >>> condatainer rprofile' "$rprofile" && grep -q '^# <<< condatainer rprofile' "$rprofile"; then
+        awk -v new="$rprofile_new" '
+            /^# >>> condatainer rprofile/ { while ((getline l < new) > 0) print l; skip = 1; next }
+            /^# <<< condatainer rprofile/ { skip = 0; next }
+            !skip { print }
+        ' "$rprofile" > "$rprofile.tmp" && mv "$rprofile.tmp" "$rprofile"
+        condatainer _helper message "Updated the P3M block of .Rprofile in ${CNT_HELPER_CWD}"
+    else
+        { echo; cat "$rprofile_new"; } >> "$rprofile"
+        condatainer _helper message "Appended the P3M block to the existing .Rprofile in ${CNT_HELPER_CWD}"
+    fi
+    rm -f "$rprofile_new"
 fi
 # endregion
 
