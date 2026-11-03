@@ -19,7 +19,7 @@
     "rstudio-server": {
       "path": "helpers/rstudio-server",
       "description": "RStudio Server (with R from base image)",
-      "sha256": "f85832ce041b42eff2dfcf3bd14c472c037ed198e29482a8ed271e8bc76b3ba2"
+      "sha256": "d0762271e7fc7af30c126b4abb428da8bc8005a34bbb1df8929636d4671777df"
     },
     "rstudio-server-conda": {
       "path": "helpers/rstudio-server-conda",

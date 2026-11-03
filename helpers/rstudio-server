@@ -83,8 +83,8 @@ if [ "${RPROFILE:-no}" = "yes" ]; then
     rprofile_new="$CNT_HELPER_STATE_DIR/Rprofile.new"
     # BEGIN embedded from assets/helpers/rstudio-server/.Rprofile — edit that
     # file, not here, then run scripts/autoupdate/helpers_rprofile_embed.py
-    cat > "$rprofile_new" <<'RPROFILE'
-# >>> condatainer rprofile
+    cat > "$CNT_HELPER_CWD/.Rprofile" <<'RPROFILE'
+#!/usr/bin/env Rscript
 # Set CRAN repo to Posit Public Package Manager (P3M) binary repos for supported distros
 .set_repository_options <- function(repo = c("bioconductor", "cran"), bioc_version = NULL, latest_cran = FALSE) {
   repo <- match.arg(repo)
@@ -293,7 +293,6 @@ if [ "${RPROFILE:-no}" = "yes" ]; then
 }
 
 .set_repository_options()
-# <<< condatainer rprofile
 RPROFILE
     # END embedded from assets/helpers/rstudio-server/.Rprofile
     if [ ! -f "$rprofile" ]; then
