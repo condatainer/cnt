@@ -22,6 +22,8 @@ From: ubuntu:22.04
     # e2fsprogs: overlay create/resize for a nested condatainer call
     # fuse2fs: mounts a writable .img for a nested apptainer call
     # time: resource usage tracing
+    # strace, ltrace, lsof, psmisc, binutils, xxd: debug a process, its files and its libraries
+    # bc: arithmetic in timing scripts
     apt-get update && apt-get install -y \
         ca-certificates \
         curl wget aria2 rsync git openssh-client jq \
@@ -29,6 +31,7 @@ From: ubuntu:22.04
         e2fsprogs fuse2fs \
         bash zsh fish bash-completion tmux tree time \
         htop less nano procps \
+        strace ltrace lsof psmisc binutils xxd bc \
         netcat-openbsd iproute2 dnsutils iputils-ping
 
     # Caches, recreated on demand by whoever is running.
