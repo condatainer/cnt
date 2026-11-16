@@ -1,6 +1,18 @@
 {
   "schema_version": 1,
   "recipes": {
+    "cellranger-template": {
+      "arch": ["amd64"],
+      "description": "10x Genomics Cell Ranger {version}, single-cell gene expression analysis",
+      "is_template": true,
+      "path": "recipes/cellranger-template",
+      "ph": {
+        "version": ["10.1.0", "10.0.0", "9.0.1", "8.0.1", "7.2.0", "7.1.0", "7.0.0", "6.1.2", "6.0.2", "5.0.1", "4.0.0", "3.1.0", "3.0.2", "2.2.0", "2.1.1", "2.0.2", "1.3.1", "1.2.1", "1.1.0", "1.0.1"]
+      },
+      "target_template": "cellranger/{version}",
+      "type": "app",
+      "url": "https://www.10xgenomics.com/support/software/cell-ranger/downloads/previous-versions"
+    },
     "cnt-vnc-viewer-template": {
       "description": "cnt-vnc-viewer {version}, a browser VNC client with audio and clipboard",
       "is_template": true,
@@ -170,6 +182,13 @@
       "target_template": "grcm39/transcript/gencode/M{gencode_version}",
       "type": "data",
       "url": "https://www.gencodegenes.org/mouse/"
+    },
+    "orad/2.7.0": {
+      "arch": ["amd64"],
+      "description": "Illumina ORA decompressor 2.7.0, reads DRAGEN .ora FASTQ files",
+      "path": "recipes/orad/2.7.0",
+      "type": "app",
+      "url": "https://support.illumina.com/sequencing/sequencing_software/DRAGENORA/software-downloads.html"
     },
     "ubuntu22/base": {
       "description": "CondaTainer Ubuntu 22.04 base image",
