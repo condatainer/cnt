@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+#DESC:Illumina ORA decompressor 2.7.0, reads DRAGEN .ora FASTQ files
+#URL:https://support.illumina.com/sequencing/sequencing_software/DRAGENORA/software-downloads.html
+#ARCH:amd64
+#TARGET:orad/2.7.0
+
+#ENV: ORA_REF_PATH={prefix}/oradata ## Illumina ORA decompressor reference search path
+
+#SOURCE:pkg amd64 https://s3.amazonaws.com/webdata.illumina.com/downloads/software/dragen-decompression/orad.2.7.0.linux.tar.gz
+
+# Illumina publishes orad under its ORA decompression EULA, listed on the page above.
+# The tarball holds the orad binary and oradata/, the reference data it reads.
+# --strip-components=1 drops the top folder. orad moves to bin/ so it is on PATH,
+# and oradata/ stays under $CNT_BUILD_PREFIX where ORA_REF_PATH points.
+tar -xf "$CNT_BUILD_SRC_pkg" -C "$CNT_BUILD_PREFIX" --strip-components=1 --no-same-owner \
+    --use-compress-program="pigz -d -p ${NCPU:-4}"
+mkdir -p "$CNT_BUILD_PREFIX/bin"
+mv "$CNT_BUILD_PREFIX/orad" "$CNT_BUILD_PREFIX/bin/orad"
+chmod 0755 "$CNT_BUILD_PREFIX/bin/orad"
