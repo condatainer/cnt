@@ -32,7 +32,7 @@ def regenerate(source: str, target: str) -> str | None:
     block = (
         BEGIN
         + "    # file, not here, then run scripts/autoupdate/helpers_rprofile_embed.py\n"
-        + '    cat > "$CNT_HELPER_CWD/.Rprofile" <<\'RPROFILE\'\n'
+        + '    cat > "$rprofile_new" <<\'RPROFILE\'\n'
         + source
         + "RPROFILE\n"
     )

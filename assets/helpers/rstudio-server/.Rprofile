@@ -1,7 +1,31 @@
-#!/usr/bin/env Rscript
+# >>> condatainer rprofile
 # Set CRAN repo to Posit Public Package Manager (P3M) binary repos for supported distros
-.set_repository_options <- function(repo = c("bioconductor", "cran"), bioc_version = NULL, latest_cran = FALSE) {
+.set_repository_options <- function(repo = c("bioconductor", "cran", "reset"), bioc_version = NULL, latest_cran = FALSE) {
   repo <- match.arg(repo)
+
+  # Remember the settings from before the first change so "reset" can restore them
+  saved <- getOption("condatainer.repo.orig")
+  if (repo == "reset") {
+    if (is.null(saved)) {
+      message("Repository options were not changed - nothing to reset.")
+      return(invisible(NULL))
+    }
+    options(saved$options)
+    if (is.na(saved$bioc_version)) Sys.unsetenv("R_BIOC_VERSION") else Sys.setenv(R_BIOC_VERSION = saved$bioc_version)
+    options(condatainer.repo.orig = NULL)
+    message("Repository options reset.")
+    return(invisible(NULL))
+  }
+  if (is.null(saved)) {
+    options(condatainer.repo.orig = list(
+      options = list(
+        repos = getOption("repos"),
+        BioC_mirror = getOption("BioC_mirror"),
+        BIOCONDUCTOR_CONFIG_FILE = getOption("BIOCONDUCTOR_CONFIG_FILE")
+      ),
+      bioc_version = Sys.getenv("R_BIOC_VERSION", unset = NA)
+    ))
+  }
 
   # Get OS information
   os_release <- tryCatch(readLines("/etc/os-release", warn = FALSE), error = function(e) NULL)
@@ -207,3 +231,4 @@
 }
 
 .set_repository_options()
+# <<< condatainer rprofile

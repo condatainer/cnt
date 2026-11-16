@@ -17,8 +17,8 @@
 
 #PARAM: PASSWORD=? --password "Password for authentication (empty for no auth)"
 
-#PARAM: RPROFILE=no --write-rprofile "Write a starter .Rprofile (P3M binary repos) into this directory (yes/no)"
-#VALUE: RPROFILE=no | yes
+#PARAM: RPROFILE=yes --write-rprofile "Write a starter .Rprofile (P3M binary repos) into this directory (yes/no)"
+#VALUE: RPROFILE=yes | no
 
 # All per-instance runtime files live under $CNT_HELPER_STATE_DIR (per-job-id, NFS-visible).
 mkdir -p "$CNT_HELPER_STATE_DIR"
@@ -75,19 +75,43 @@ fi
 
 # region .Rprofile (generated — edit assets/helpers/rstudio-server/.Rprofile instead)
 
-# --write-rprofile opts in to a managed .Rprofile block (P3M binary repos),
-# independent of whether .Rproj already existed. A new file gets the block;
-# the block of an existing file is replaced in place, so lines around it stay.
-if [ "${RPROFILE:-no}" = "yes" ]; then
+# --write-rprofile controls a managed .Rprofile block (P3M binary repos),
+# independent of whether .Rproj already existed. yes: a new file gets the block
+# and the block of an existing file is replaced in place. no: .Rprofile is not touched.
+if [ "${RPROFILE:-yes}" = "yes" ]; then
     rprofile="$CNT_HELPER_CWD/.Rprofile"
     rprofile_new="$CNT_HELPER_STATE_DIR/Rprofile.new"
     # BEGIN embedded from assets/helpers/rstudio-server/.Rprofile — edit that
     # file, not here, then run scripts/autoupdate/helpers_rprofile_embed.py
-    cat > "$CNT_HELPER_CWD/.Rprofile" <<'RPROFILE'
-#!/usr/bin/env Rscript
+    cat > "$rprofile_new" <<'RPROFILE'
+# >>> condatainer rprofile
 # Set CRAN repo to Posit Public Package Manager (P3M) binary repos for supported distros
-.set_repository_options <- function(repo = c("bioconductor", "cran"), bioc_version = NULL, latest_cran = FALSE) {
+.set_repository_options <- function(repo = c("bioconductor", "cran", "reset"), bioc_version = NULL, latest_cran = FALSE) {
   repo <- match.arg(repo)
+
+  # Remember the settings from before the first change so "reset" can restore them
+  saved <- getOption("condatainer.repo.orig")
+  if (repo == "reset") {
+    if (is.null(saved)) {
+      message("Repository options were not changed - nothing to reset.")
+      return(invisible(NULL))
+    }
+    options(saved$options)
+    if (is.na(saved$bioc_version)) Sys.unsetenv("R_BIOC_VERSION") else Sys.setenv(R_BIOC_VERSION = saved$bioc_version)
+    options(condatainer.repo.orig = NULL)
+    message("Repository options reset.")
+    return(invisible(NULL))
+  }
+  if (is.null(saved)) {
+    options(condatainer.repo.orig = list(
+      options = list(
+        repos = getOption("repos"),
+        BioC_mirror = getOption("BioC_mirror"),
+        BIOCONDUCTOR_CONFIG_FILE = getOption("BIOCONDUCTOR_CONFIG_FILE")
+      ),
+      bioc_version = Sys.getenv("R_BIOC_VERSION", unset = NA)
+    ))
+  }
 
   # Get OS information
   os_release <- tryCatch(readLines("/etc/os-release", warn = FALSE), error = function(e) NULL)
@@ -293,6 +317,7 @@ if [ "${RPROFILE:-no}" = "yes" ]; then
 }
 
 .set_repository_options()
+# <<< condatainer rprofile
 RPROFILE
     # END embedded from assets/helpers/rstudio-server/.Rprofile
     if [ ! -f "$rprofile" ]; then
@@ -303,7 +328,8 @@ RPROFILE
             /^# >>> condatainer rprofile/ { while ((getline l < new) > 0) print l; skip = 1; next }
             /^# <<< condatainer rprofile/ { skip = 0; next }
             !skip { print }
-        ' "$rprofile" > "$rprofile.tmp" && mv "$rprofile.tmp" "$rprofile"
+        ' "$rprofile" > "$rprofile.tmp" && cat "$rprofile.tmp" > "$rprofile"
+        rm -f "$rprofile.tmp"
         condatainer _helper message "Updated the P3M block of .Rprofile in ${CNT_HELPER_CWD}"
     else
         { echo; cat "$rprofile_new"; } >> "$rprofile"
@@ -313,7 +339,10 @@ RPROFILE
 fi
 # endregion
 
-condatainer _helper message "Open project: rstudioapi::openProject(\"${CNT_HELPER_CWD}\")"
+# RStudio creates .Rproj.user once the folder has been opened as a project.
+if [ ! -d "$CNT_HELPER_CWD/.Rproj.user" ]; then
+    condatainer _helper message "Open project: .rs.api.openProject(\"${CNT_HELPER_CWD}\")"
+fi
 
 if [ -n "${PASSWORD:-}" ]; then
     condatainer _helper message "Password: ${PASSWORD}"

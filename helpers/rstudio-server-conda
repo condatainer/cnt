@@ -68,7 +68,10 @@ Version: 1.0
 RPROJ
 fi
 
-condatainer _helper message "Open project: rstudioapi::openProject(\"${CNT_HELPER_CWD}\")"
+# RStudio creates .Rproj.user once the folder has been opened as a project.
+if [ ! -d "$CNT_HELPER_CWD/.Rproj.user" ]; then
+    condatainer _helper message "Open project: .rs.api.openProject(\"${CNT_HELPER_CWD}\")"
+fi
 
 if [ -n "${PASSWORD:-}" ]; then
     condatainer _helper message "Password: ${PASSWORD}"
