@@ -4,9 +4,9 @@
 #ARCH:amd64
 #TARGET:orad/2.7.0
 
-#ENV: ORA_REF_PATH={prefix}/oradata ## Illumina ORA decompressor reference search path
-
 #SOURCE:pkg amd64 https://s3.amazonaws.com/webdata.illumina.com/downloads/software/dragen-decompression/orad.2.7.0.linux.tar.gz
+
+#ENV: ORA_REF_PATH={prefix}/oradata ## Illumina ORA decompressor reference search path
 
 # Illumina publishes orad under its ORA decompression EULA, listed on the page above.
 # The tarball holds the orad binary and oradata/, the reference data it reads.
