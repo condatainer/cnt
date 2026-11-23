@@ -9,7 +9,7 @@
     "igv": {
       "path": "helpers/igv",
       "description": "Integrative Genomics Viewer (VNC)",
-      "sha256": "da125d18a89771dc5e2be143c5ec0b65da8fc85e3397ba94fa01dd45512a4de4"
+      "sha256": "a70e2492091e4c572a63f845f5708fb2c8cb11b1f2fcbcf27b7860a901b3a7e6"
     },
     "jupyterlab": {
       "path": "helpers/jupyterlab",
